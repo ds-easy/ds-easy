@@ -13,30 +13,19 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// Service represents a service that interacts with a database.
-type Service interface {
-	// Health returns a map of health status information.
-	// The keys and values in the map are service-specific.
-	Health() map[string]string
-
-	// Close terminates the database connection.
-	// It returns an error if the connection cannot be closed.
-	Close() error
-}
-
-type service struct {
+type Service struct {
 	db *sql.DB
 }
 
 var (
 	dburl      = os.Getenv("DB_URL")
-	dbInstance *service
+	dbInstance *Service
 )
 
 func New() Service {
 	// Reuse Connection
 	if dbInstance != nil {
-		return dbInstance
+		return *dbInstance
 	}
 
 	db, err := sql.Open("sqlite3", dburl)
@@ -46,15 +35,15 @@ func New() Service {
 		log.Fatal(err)
 	}
 
-	dbInstance = &service{
+	dbInstance = &Service{
 		db: db,
 	}
-	return dbInstance
+	return *dbInstance
 }
 
 // Health checks the health of the database connection by pinging the database.
 // It returns a map with keys indicating various health statistics.
-func (s *service) Health() map[string]string {
+func (s *Service) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
@@ -107,7 +96,13 @@ func (s *service) Health() map[string]string {
 // It logs a message indicating the disconnection from the specific database.
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
-func (s *service) Close() error {
+func (s *Service) Close() error {
 	log.Printf("Disconnected from database: %s", dburl)
 	return s.db.Close()
+}
+
+func (s *Service) TestDB() error {
+	_, err := s.db.Exec(" CREATE TABLE users ( user_id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE, password TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ")
+
+	return err
 }

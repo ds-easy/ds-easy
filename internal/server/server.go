@@ -18,7 +18,7 @@ type Server struct {
 	db database.Service
 }
 
-func NewServer() *http.Server {
+func NewServer() (*http.Server, Server) {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	NewServer := &Server{
 		port: port,
@@ -35,5 +35,9 @@ func NewServer() *http.Server {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	return server
+	return server, *NewServer
+}
+
+func (s Server) TestDB() error {
+	return s.db.TestDB()
 }
