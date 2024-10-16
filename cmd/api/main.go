@@ -6,10 +6,9 @@ import (
 )
 
 func main() {
+	fmt.Printf("DSEASY")
+	server := server.NewServer()
 
-	server, servee := server.NewServer()
-
-	servee.TestDB()
 	err := server.ListenAndServe()
 
 	if err != nil {
