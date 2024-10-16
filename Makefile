@@ -6,11 +6,11 @@ all: build
 build:
 	@echo "Building..."
 	@templ generate
-	@go build -o main main.go
+	@go build -o tmp/main src/main.go
 
 # Run the application
 run:
-	@go run main.go
+	@go run src/main.go
 
 # Clean the binary
 clean:

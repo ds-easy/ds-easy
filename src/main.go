@@ -1,17 +1,19 @@
 package main
 
 import (
-	"ds-easy/database"
-	"ds-easy/web"
+	"ds-easy/src/database"
+	"ds-easy/src/web"
+	"encoding/json"
 	"fmt"
-	"github.com/a-h/templ"
-	"github.com/gorilla/mux"
-	_ "github.com/joho/godotenv/autoload"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/a-h/templ"
+	"github.com/gorilla/mux"
+	_ "github.com/joho/godotenv/autoload"
+	log "github.com/sirupsen/logrus"
 )
 
 type Server struct {
