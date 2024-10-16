@@ -6,21 +6,16 @@ all: build
 build:
 	@echo "Building..."
 	@templ generate
-	@go build -o main cmd/api/main.go
+	@go build -o main main.go
 
 # Run the application
 run:
-	@go run cmd/api/main.go
-
-# Test the application
-test:
-	@echo "Testing..."
-	@go test ./tests -v
+	@go run main.go
 
 # Clean the binary
 clean:
 	@echo "Cleaning..."
-	@rm -f main
+	@rm -rf tmp
 
 # Live Reload
 watch:
