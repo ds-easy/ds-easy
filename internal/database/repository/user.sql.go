@@ -9,12 +9,55 @@ import (
 	"context"
 )
 
+const addUser = `-- name: AddUser :one
+INSERT INTO
+    users (
+        first_name,
+        last_name,
+        email,
+        password,
+        admin
+    )
+VALUES (?, ?, ?, ?, ?) RETURNING id, created_at, updated_at, deleted_at, first_name, last_name, email, password, admin
+`
+
+type AddUserParams struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	Admin     int64  `json:"admin"`
+}
+
+func (q *Queries) AddUser(ctx context.Context, arg AddUserParams) (User, error) {
+	row := q.queryRow(ctx, q.addUserStmt, addUser,
+		arg.FirstName,
+		arg.LastName,
+		arg.Email,
+		arg.Password,
+		arg.Admin,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.Password,
+		&i.Admin,
+	)
+	return i, err
+}
+
 const findAllUsers = `-- name: FindAllUsers :many
 SELECT id, created_at, updated_at, deleted_at, first_name, last_name, email, password, admin FROM users
 `
 
 func (q *Queries) FindAllUsers(ctx context.Context) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, findAllUsers)
+	rows, err := q.query(ctx, q.findAllUsersStmt, findAllUsers)
 	if err != nil {
 		return nil, err
 	}
@@ -44,4 +87,25 @@ func (q *Queries) FindAllUsers(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const findUserById = `-- name: FindUserById :one
+SELECT id, created_at, updated_at, deleted_at, first_name, last_name, email, password, admin FROM users where id = ?
+`
+
+func (q *Queries) FindUserById(ctx context.Context, id int64) (User, error) {
+	row := q.queryRow(ctx, q.findUserByIdStmt, findUserById, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.Password,
+		&i.Admin,
+	)
+	return i, err
 }

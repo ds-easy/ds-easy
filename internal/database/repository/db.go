@@ -7,6 +7,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 )
 
 type DBTX interface {
@@ -20,12 +21,178 @@ func New(db DBTX) *Queries {
 	return &Queries{db: db}
 }
 
+func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
+	q := Queries{db: db}
+	var err error
+	if q.addUserStmt, err = db.PrepareContext(ctx, addUser); err != nil {
+		return nil, fmt.Errorf("error preparing query AddUser: %w", err)
+	}
+	if q.findAllLessonNamesStmt, err = db.PrepareContext(ctx, findAllLessonNames); err != nil {
+		return nil, fmt.Errorf("error preparing query FindAllLessonNames: %w", err)
+	}
+	if q.findAllUsersStmt, err = db.PrepareContext(ctx, findAllUsers); err != nil {
+		return nil, fmt.Errorf("error preparing query FindAllUsers: %w", err)
+	}
+	if q.findExamsStmt, err = db.PrepareContext(ctx, findExams); err != nil {
+		return nil, fmt.Errorf("error preparing query FindExams: %w", err)
+	}
+	if q.findExercisesStmt, err = db.PrepareContext(ctx, findExercises); err != nil {
+		return nil, fmt.Errorf("error preparing query FindExercises: %w", err)
+	}
+	if q.findExercisesByLessonNameStmt, err = db.PrepareContext(ctx, findExercisesByLessonName); err != nil {
+		return nil, fmt.Errorf("error preparing query FindExercisesByLessonName: %w", err)
+	}
+	if q.findExercisesBySubjectStmt, err = db.PrepareContext(ctx, findExercisesBySubject); err != nil {
+		return nil, fmt.Errorf("error preparing query FindExercisesBySubject: %w", err)
+	}
+	if q.findLessonsStmt, err = db.PrepareContext(ctx, findLessons); err != nil {
+		return nil, fmt.Errorf("error preparing query FindLessons: %w", err)
+	}
+	if q.findUserByIdStmt, err = db.PrepareContext(ctx, findUserById); err != nil {
+		return nil, fmt.Errorf("error preparing query FindUserById: %w", err)
+	}
+	if q.insertExamStmt, err = db.PrepareContext(ctx, insertExam); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertExam: %w", err)
+	}
+	if q.insertExerciseStmt, err = db.PrepareContext(ctx, insertExercise); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertExercise: %w", err)
+	}
+	if q.insertLessonStmt, err = db.PrepareContext(ctx, insertLesson); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertLesson: %w", err)
+	}
+	return &q, nil
+}
+
+func (q *Queries) Close() error {
+	var err error
+	if q.addUserStmt != nil {
+		if cerr := q.addUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing addUserStmt: %w", cerr)
+		}
+	}
+	if q.findAllLessonNamesStmt != nil {
+		if cerr := q.findAllLessonNamesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findAllLessonNamesStmt: %w", cerr)
+		}
+	}
+	if q.findAllUsersStmt != nil {
+		if cerr := q.findAllUsersStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findAllUsersStmt: %w", cerr)
+		}
+	}
+	if q.findExamsStmt != nil {
+		if cerr := q.findExamsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findExamsStmt: %w", cerr)
+		}
+	}
+	if q.findExercisesStmt != nil {
+		if cerr := q.findExercisesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findExercisesStmt: %w", cerr)
+		}
+	}
+	if q.findExercisesByLessonNameStmt != nil {
+		if cerr := q.findExercisesByLessonNameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findExercisesByLessonNameStmt: %w", cerr)
+		}
+	}
+	if q.findExercisesBySubjectStmt != nil {
+		if cerr := q.findExercisesBySubjectStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findExercisesBySubjectStmt: %w", cerr)
+		}
+	}
+	if q.findLessonsStmt != nil {
+		if cerr := q.findLessonsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findLessonsStmt: %w", cerr)
+		}
+	}
+	if q.findUserByIdStmt != nil {
+		if cerr := q.findUserByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findUserByIdStmt: %w", cerr)
+		}
+	}
+	if q.insertExamStmt != nil {
+		if cerr := q.insertExamStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertExamStmt: %w", cerr)
+		}
+	}
+	if q.insertExerciseStmt != nil {
+		if cerr := q.insertExerciseStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertExerciseStmt: %w", cerr)
+		}
+	}
+	if q.insertLessonStmt != nil {
+		if cerr := q.insertLessonStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertLessonStmt: %w", cerr)
+		}
+	}
+	return err
+}
+
+func (q *Queries) exec(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) (sql.Result, error) {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).ExecContext(ctx, args...)
+	case stmt != nil:
+		return stmt.ExecContext(ctx, args...)
+	default:
+		return q.db.ExecContext(ctx, query, args...)
+	}
+}
+
+func (q *Queries) query(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) (*sql.Rows, error) {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).QueryContext(ctx, args...)
+	case stmt != nil:
+		return stmt.QueryContext(ctx, args...)
+	default:
+		return q.db.QueryContext(ctx, query, args...)
+	}
+}
+
+func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) *sql.Row {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).QueryRowContext(ctx, args...)
+	case stmt != nil:
+		return stmt.QueryRowContext(ctx, args...)
+	default:
+		return q.db.QueryRowContext(ctx, query, args...)
+	}
+}
+
 type Queries struct {
-	db DBTX
+	db                            DBTX
+	tx                            *sql.Tx
+	addUserStmt                   *sql.Stmt
+	findAllLessonNamesStmt        *sql.Stmt
+	findAllUsersStmt              *sql.Stmt
+	findExamsStmt                 *sql.Stmt
+	findExercisesStmt             *sql.Stmt
+	findExercisesByLessonNameStmt *sql.Stmt
+	findExercisesBySubjectStmt    *sql.Stmt
+	findLessonsStmt               *sql.Stmt
+	findUserByIdStmt              *sql.Stmt
+	insertExamStmt                *sql.Stmt
+	insertExerciseStmt            *sql.Stmt
+	insertLessonStmt              *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db: tx,
+		db:                            tx,
+		tx:                            tx,
+		addUserStmt:                   q.addUserStmt,
+		findAllLessonNamesStmt:        q.findAllLessonNamesStmt,
+		findAllUsersStmt:              q.findAllUsersStmt,
+		findExamsStmt:                 q.findExamsStmt,
+		findExercisesStmt:             q.findExercisesStmt,
+		findExercisesByLessonNameStmt: q.findExercisesByLessonNameStmt,
+		findExercisesBySubjectStmt:    q.findExercisesBySubjectStmt,
+		findLessonsStmt:               q.findLessonsStmt,
+		findUserByIdStmt:              q.findUserByIdStmt,
+		insertExamStmt:                q.insertExamStmt,
+		insertExerciseStmt:            q.insertExerciseStmt,
+		insertLessonStmt:              q.insertLessonStmt,
 	}
 }

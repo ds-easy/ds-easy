@@ -9,49 +9,49 @@ import (
 )
 
 type Exam struct {
-	ID            int64
-	CreatedAt     sql.NullTime
-	UpdatedAt     sql.NullTime
-	DeletedAt     sql.NullTime
-	DateOfPassing sql.NullTime
-	ExamNumber    sql.NullInt64
-	ProfessorID   sql.NullInt64
+	ID            int64         `json:"id"`
+	CreatedAt     sql.NullTime  `json:"created_at"`
+	UpdatedAt     sql.NullTime  `json:"updated_at"`
+	DeletedAt     sql.NullTime  `json:"deleted_at"`
+	DateOfPassing sql.NullTime  `json:"date_of_passing"`
+	ExamNumber    sql.NullInt64 `json:"exam_number"`
+	ProfessorID   sql.NullInt64 `json:"professor_id"`
 }
 
 type ExamsExercise struct {
-	ExamID     sql.NullInt64
-	ExerciseID sql.NullInt64
+	ExamID     sql.NullInt64 `json:"exam_id"`
+	ExerciseID sql.NullInt64 `json:"exercise_id"`
 }
 
 type Exercise struct {
-	ID           int64
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
-	DeletedAt    sql.NullTime
-	ExerciseName string
-	ExercisePath string
-	LessonID     int64
-	UploadedBy   int64
+	ID           int64        `json:"id"`
+	CreatedAt    sql.NullTime `json:"created_at"`
+	UpdatedAt    sql.NullTime `json:"updated_at"`
+	DeletedAt    sql.NullTime `json:"deleted_at"`
+	ExerciseName string       `json:"exercise_name"`
+	ExercisePath string       `json:"exercise_path"`
+	LessonID     int64        `json:"lesson_id"`
+	UploadedBy   int64        `json:"uploaded_by"`
 }
 
 type Lesson struct {
-	ID         int64
-	CreatedAt  sql.NullTime
-	UpdatedAt  sql.NullTime
-	DeletedAt  sql.NullTime
-	LessonName string
-	Year       string
-	Subject    string
+	ID         int64        `json:"id"`
+	CreatedAt  sql.NullTime `json:"created_at"`
+	UpdatedAt  sql.NullTime `json:"updated_at"`
+	DeletedAt  sql.NullTime `json:"deleted_at"`
+	LessonName string       `json:"lesson_name"`
+	Year       string       `json:"year"`
+	Subject    string       `json:"subject"`
 }
 
 type User struct {
-	ID        int64
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
-	DeletedAt sql.NullTime
-	FirstName string
-	LastName  string
-	Email     string
-	Password  string
-	Admin     int64
+	ID        int64        `json:"id"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
+	FirstName string       `json:"first_name"`
+	LastName  string       `json:"last_name"`
+	Email     string       `json:"email"`
+	Password  string       `json:"password"`
+	Admin     int64        `json:"admin"`
 }
