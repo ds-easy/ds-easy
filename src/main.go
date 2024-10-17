@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -44,6 +46,31 @@ func (s Server) TestDB() error {
 	return s.db.TestDB()
 }
 
+func formatFilePath(path string) string {
+	arr := strings.Split(path, "/")
+	return arr[len(arr)-1]
+}
+
+func init() {
+	log.SetReportCaller(true)
+
+	formatter := &log.TextFormatter{
+		TimestampFormat:        "02-01-2006 15:04:05", // the "time" field configuratiom
+		FullTimestamp:          true,
+		DisableLevelTruncation: true, // log level field configuration
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			// this function is required when you want to introduce your custom format.
+			// In my case I wanted file and line to look like this `file="engine.go:141`
+			// but f.File provides a full path along with the file name.
+			// So in `formatFilePath()` function I just trimmet everything before the file name
+			// and added a line number in the end
+			return "", fmt.Sprintf("%s:%d", formatFilePath(f.File), f.Line)
+		},
+	}
+
+	log.SetFormatter(formatter)
+}
+
 func main() {
 	log.Info("DSEASY")
 	server := NewServer()
@@ -52,7 +79,7 @@ func main() {
 	err := server.ListenAndServe()
 
 	if err != nil {
-		log.Panic("Cannot start server: %s", err)
+		log.Panic("Cannot start server: ", err)
 	}
 }
 
