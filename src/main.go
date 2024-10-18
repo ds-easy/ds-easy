@@ -3,6 +3,7 @@ package main
 import (
 	"ds-easy/src/database"
 	"ds-easy/src/web"
+	userHandlers "ds-easy/src/web/users"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -96,6 +97,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	})
 
 	r.HandleFunc("/hello", web.HelloWebHandler)
+
+	userHandlers.Service{}
 
 	return r
 }
