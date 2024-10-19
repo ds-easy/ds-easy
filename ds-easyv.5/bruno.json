@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "ds-easyv.5",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
