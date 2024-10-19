@@ -5,7 +5,6 @@ import (
 	"context"
 	"ds-easy/src/database/repository"
 	"encoding/json"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -107,24 +106,28 @@ func uploadToPocketBase(file multipart.File, exerciseName string) (string, error
 	part, err := writer.CreateFormFile("files", exerciseName)
 	if err != nil {
 		log.Error("error creating form file: ", err)
+		return "", err
 	}
 
 	// Copy the file contents to the form field
 	_, err = io.Copy(part, file)
 	if err != nil {
 		log.Error("error copying file: ", err)
+		return "", err
 	}
 
 	// Close the multipart writer to finalize the request
 	err = writer.Close()
 	if err != nil {
 		log.Error("error closing writer: ", err)
+		return "", err
 	}
 
 	// Create the POST request with the multipart form data
 	req, err := http.NewRequest("POST", "http://127.0.0.1:8090/api/collections/exo_files/records", body)
 	if err != nil {
 		log.Error("error creating POST request: ", err)
+		return "", err
 	}
 
 	// Set the content type for the multipart form data
@@ -135,17 +138,15 @@ func uploadToPocketBase(file multipart.File, exerciseName string) (string, error
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Error("error sending POST request: ", err)
+		return "", err
 	}
 	defer resp.Body.Close()
-
-	log.Info(resp.StatusCode)
 
 	// Check response status
 	if resp.StatusCode != http.StatusOK {
 		log.Error("bad response status: ", resp.Status)
+		return "", err
 	}
-
-	fmt.Println("File uploaded successfully with status:", resp.Status)
 
 	response := struct {
 		Id string `json:"id"`
