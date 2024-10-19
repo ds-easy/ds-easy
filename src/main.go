@@ -4,7 +4,7 @@ import (
 	"ds-easy/src/database"
 	"ds-easy/src/database/repository"
 	"ds-easy/src/web"
-	userHandlers "ds-easy/src/web/users"
+	handlers "ds-easy/src/web/handlers"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -101,12 +101,13 @@ func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 
 	r.HandleFunc("/hello", web.HelloWebHandler)
 
-	userService := userHandlers.Service{
+	service := handlers.Service{
 		Queries: queries,
 		Mux:     r,
 	}
 
-	userService.RegisterRoutes()
+	service.RegisterUserRoutes()
+	service.RegisterLessonRoutes()
 
 	return r
 }
