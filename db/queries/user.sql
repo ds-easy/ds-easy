@@ -14,3 +14,6 @@ VALUES (?, ?, ?, ?, ?) RETURNING *;
 
 -- name: FindUserById :one
 SELECT * FROM users where id = ?;
+
+-- name: FindUserByEmail :one
+SELECT * FROM users where email = ?;

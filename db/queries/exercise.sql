@@ -24,3 +24,6 @@ FROM exercises e
     LEFT JOIN lessons l ON e.lesson_id = l.id
 WHERE
     l.lesson_name = ?;
+
+-- name: FindExercisesByName :one
+SELECT * FROM exercises WHERE exercises.exercise_name = ? LIMIT 1;
