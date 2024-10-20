@@ -2,7 +2,9 @@ package main
 
 import (
 	"ds-easy/src/database"
+	"ds-easy/src/database/repository"
 	"ds-easy/src/web"
+	userHandlers "ds-easy/src/web/users"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -30,10 +32,12 @@ func NewServer() *http.Server {
 		db:   database.New(),
 	}
 
+	queries := repository.New(NewServer.db.Db)
+
 	// Declare Server config
 	server := &http.Server{
 		Addr:         fmt.Sprintf("localhost:%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(),
+		Handler:      NewServer.RegisterRoutes(*queries),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
@@ -83,7 +87,7 @@ func main() {
 	}
 }
 
-func (s *Server) RegisterRoutes() http.Handler {
+func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", s.HelloWorldHandler)
@@ -96,6 +100,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 	})
 
 	r.HandleFunc("/hello", web.HelloWebHandler)
+
+	userService := userHandlers.Service{
+		Queries: queries,
+		Mux:     r,
+	}
+
+	userService.RegisterRoutes()
 
 	return r
 }

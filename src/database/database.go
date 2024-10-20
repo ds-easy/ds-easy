@@ -14,7 +14,7 @@ import (
 )
 
 type Service struct {
-	db *sql.DB
+	Db *sql.DB
 }
 
 var (
@@ -36,7 +36,7 @@ func New() Service {
 	}
 
 	dbInstance = &Service{
-		db: db,
+		Db: db,
 	}
 	return *dbInstance
 }
@@ -50,7 +50,7 @@ func (s *Service) Health() map[string]string {
 	stats := make(map[string]string)
 
 	// Ping the database
-	err := s.db.PingContext(ctx)
+	err := s.Db.PingContext(ctx)
 	if err != nil {
 		stats["status"] = "down"
 		stats["error"] = fmt.Sprintf("db down: %v", err)
@@ -63,7 +63,7 @@ func (s *Service) Health() map[string]string {
 	stats["message"] = "It's healthy"
 
 	// Get database stats (like open connections, in use, idle, etc.)
-	dbStats := s.db.Stats()
+	dbStats := s.Db.Stats()
 	stats["open_connections"] = strconv.Itoa(dbStats.OpenConnections)
 	stats["in_use"] = strconv.Itoa(dbStats.InUse)
 	stats["idle"] = strconv.Itoa(dbStats.Idle)
@@ -98,11 +98,11 @@ func (s *Service) Health() map[string]string {
 // If an error occurs while closing the connection, it returns the error.
 func (s *Service) Close() error {
 	log.Printf("Disconnected from database: %s", dburl)
-	return s.db.Close()
+	return s.Db.Close()
 }
 
 func (s *Service) TestDB() error {
-	_, err := s.db.Exec(" CREATE TABLE users ( user_id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE, password TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ")
+	_, err := s.Db.Exec(" CREATE TABLE users ( user_id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, email TEXT NOT NULL UNIQUE, password TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ")
 
 	return err
 }
