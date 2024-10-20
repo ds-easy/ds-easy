@@ -42,11 +42,20 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findExercisesByLessonNameStmt, err = db.PrepareContext(ctx, findExercisesByLessonName); err != nil {
 		return nil, fmt.Errorf("error preparing query FindExercisesByLessonName: %w", err)
 	}
+	if q.findExercisesByNameStmt, err = db.PrepareContext(ctx, findExercisesByName); err != nil {
+		return nil, fmt.Errorf("error preparing query FindExercisesByName: %w", err)
+	}
 	if q.findExercisesBySubjectStmt, err = db.PrepareContext(ctx, findExercisesBySubject); err != nil {
 		return nil, fmt.Errorf("error preparing query FindExercisesBySubject: %w", err)
 	}
+	if q.findLessonByNameStmt, err = db.PrepareContext(ctx, findLessonByName); err != nil {
+		return nil, fmt.Errorf("error preparing query FindLessonByName: %w", err)
+	}
 	if q.findLessonsStmt, err = db.PrepareContext(ctx, findLessons); err != nil {
 		return nil, fmt.Errorf("error preparing query FindLessons: %w", err)
+	}
+	if q.findUserByEmailStmt, err = db.PrepareContext(ctx, findUserByEmail); err != nil {
+		return nil, fmt.Errorf("error preparing query FindUserByEmail: %w", err)
 	}
 	if q.findUserByIdStmt, err = db.PrepareContext(ctx, findUserById); err != nil {
 		return nil, fmt.Errorf("error preparing query FindUserById: %w", err)
@@ -95,14 +104,29 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findExercisesByLessonNameStmt: %w", cerr)
 		}
 	}
+	if q.findExercisesByNameStmt != nil {
+		if cerr := q.findExercisesByNameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findExercisesByNameStmt: %w", cerr)
+		}
+	}
 	if q.findExercisesBySubjectStmt != nil {
 		if cerr := q.findExercisesBySubjectStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findExercisesBySubjectStmt: %w", cerr)
 		}
 	}
+	if q.findLessonByNameStmt != nil {
+		if cerr := q.findLessonByNameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findLessonByNameStmt: %w", cerr)
+		}
+	}
 	if q.findLessonsStmt != nil {
 		if cerr := q.findLessonsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findLessonsStmt: %w", cerr)
+		}
+	}
+	if q.findUserByEmailStmt != nil {
+		if cerr := q.findUserByEmailStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findUserByEmailStmt: %w", cerr)
 		}
 	}
 	if q.findUserByIdStmt != nil {
@@ -170,8 +194,11 @@ type Queries struct {
 	findExamsStmt                 *sql.Stmt
 	findExercisesStmt             *sql.Stmt
 	findExercisesByLessonNameStmt *sql.Stmt
+	findExercisesByNameStmt       *sql.Stmt
 	findExercisesBySubjectStmt    *sql.Stmt
+	findLessonByNameStmt          *sql.Stmt
 	findLessonsStmt               *sql.Stmt
+	findUserByEmailStmt           *sql.Stmt
 	findUserByIdStmt              *sql.Stmt
 	insertExamStmt                *sql.Stmt
 	insertExerciseStmt            *sql.Stmt
@@ -188,8 +215,11 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findExamsStmt:                 q.findExamsStmt,
 		findExercisesStmt:             q.findExercisesStmt,
 		findExercisesByLessonNameStmt: q.findExercisesByLessonNameStmt,
+		findExercisesByNameStmt:       q.findExercisesByNameStmt,
 		findExercisesBySubjectStmt:    q.findExercisesBySubjectStmt,
+		findLessonByNameStmt:          q.findLessonByNameStmt,
 		findLessonsStmt:               q.findLessonsStmt,
+		findUserByEmailStmt:           q.findUserByEmailStmt,
 		findUserByIdStmt:              q.findUserByIdStmt,
 		insertExamStmt:                q.insertExamStmt,
 		insertExerciseStmt:            q.insertExerciseStmt,

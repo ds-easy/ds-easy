@@ -85,6 +85,26 @@ func (q *Queries) FindExercisesByLessonName(ctx context.Context, lessonName stri
 	return items, nil
 }
 
+const findExercisesByName = `-- name: FindExercisesByName :one
+SELECT id, created_at, updated_at, deleted_at, exercise_name, exercise_path, lesson_id, uploaded_by FROM exercises WHERE exercises.exercise_name = ? LIMIT 1
+`
+
+func (q *Queries) FindExercisesByName(ctx context.Context, exerciseName string) (Exercise, error) {
+	row := q.queryRow(ctx, q.findExercisesByNameStmt, findExercisesByName, exerciseName)
+	var i Exercise
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.ExerciseName,
+		&i.ExercisePath,
+		&i.LessonID,
+		&i.UploadedBy,
+	)
+	return i, err
+}
+
 const findExercisesBySubject = `-- name: FindExercisesBySubject :many
 SELECT e.id, e.created_at, e.updated_at, e.deleted_at, e.exercise_name, e.exercise_path, e.lesson_id, e.uploaded_by
 FROM exercises e

@@ -89,6 +89,27 @@ func (q *Queries) FindAllUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const findUserByEmail = `-- name: FindUserByEmail :one
+SELECT id, created_at, updated_at, deleted_at, first_name, last_name, email, password, admin FROM users where email = ?
+`
+
+func (q *Queries) FindUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.queryRow(ctx, q.findUserByEmailStmt, findUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.Password,
+		&i.Admin,
+	)
+	return i, err
+}
+
 const findUserById = `-- name: FindUserById :one
 SELECT id, created_at, updated_at, deleted_at, first_name, last_name, email, password, admin FROM users where id = ?
 `

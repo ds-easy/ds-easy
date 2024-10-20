@@ -8,3 +8,6 @@ VALUES (?, ?, ?) RETURNING *;
 
 -- name: FindAllLessonNames :many
 SELECT lesson_name FROM lessons;
+
+-- name: FindLessonByName :one
+SELECT * FROM lessons WHERE lessons.lesson_name = ? LIMIT 1;

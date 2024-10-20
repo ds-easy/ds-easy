@@ -36,6 +36,25 @@ func (q *Queries) FindAllLessonNames(ctx context.Context) ([]string, error) {
 	return items, nil
 }
 
+const findLessonByName = `-- name: FindLessonByName :one
+SELECT id, created_at, updated_at, deleted_at, lesson_name, year, subject FROM lessons WHERE lessons.lesson_name = ? LIMIT 1
+`
+
+func (q *Queries) FindLessonByName(ctx context.Context, lessonName string) (Lesson, error) {
+	row := q.queryRow(ctx, q.findLessonByNameStmt, findLessonByName, lessonName)
+	var i Lesson
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.LessonName,
+		&i.Year,
+		&i.Subject,
+	)
+	return i, err
+}
+
 const findLessons = `-- name: FindLessons :many
 SELECT id, created_at, updated_at, deleted_at, lesson_name, year, subject FROM lessons
 `
