@@ -1,4 +1,4 @@
-package userHandlers
+package handlers
 
 import (
 	"context"
@@ -11,13 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Service struct {
-	Queries repository.Queries
-	Mux     *mux.Router
-}
-
-func (s Service) RegisterRoutes() {
-	log.Info("test")
+func (s Service) RegisterUserRoutes() {
 	baseUrl := "/users"
 
 	s.Mux.HandleFunc(baseUrl, s.getUsersHandler).Methods("GET")
