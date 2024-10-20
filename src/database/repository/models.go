@@ -44,6 +44,15 @@ type Lesson struct {
 	Subject    string       `json:"subject"`
 }
 
+type Template struct {
+	ID         int64        `json:"id"`
+	CreatedAt  sql.NullTime `json:"created_at"`
+	UpdatedAt  sql.NullTime `json:"updated_at"`
+	DeletedAt  sql.NullTime `json:"deleted_at"`
+	UploadedBy int64        `json:"uploaded_by"`
+	PbFileID   string       `json:"pb_file_id"`
+}
+
 type User struct {
 	ID        int64        `json:"id"`
 	CreatedAt sql.NullTime `json:"created_at"`

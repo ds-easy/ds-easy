@@ -54,6 +54,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findLessonsStmt, err = db.PrepareContext(ctx, findLessons); err != nil {
 		return nil, fmt.Errorf("error preparing query FindLessons: %w", err)
 	}
+	if q.findTemplatesStmt, err = db.PrepareContext(ctx, findTemplates); err != nil {
+		return nil, fmt.Errorf("error preparing query FindTemplates: %w", err)
+	}
 	if q.findUserByEmailStmt, err = db.PrepareContext(ctx, findUserByEmail); err != nil {
 		return nil, fmt.Errorf("error preparing query FindUserByEmail: %w", err)
 	}
@@ -68,6 +71,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.insertLessonStmt, err = db.PrepareContext(ctx, insertLesson); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertLesson: %w", err)
+	}
+	if q.insertTemplateStmt, err = db.PrepareContext(ctx, insertTemplate); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertTemplate: %w", err)
 	}
 	return &q, nil
 }
@@ -124,6 +130,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findLessonsStmt: %w", cerr)
 		}
 	}
+	if q.findTemplatesStmt != nil {
+		if cerr := q.findTemplatesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findTemplatesStmt: %w", cerr)
+		}
+	}
 	if q.findUserByEmailStmt != nil {
 		if cerr := q.findUserByEmailStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findUserByEmailStmt: %w", cerr)
@@ -147,6 +158,11 @@ func (q *Queries) Close() error {
 	if q.insertLessonStmt != nil {
 		if cerr := q.insertLessonStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing insertLessonStmt: %w", cerr)
+		}
+	}
+	if q.insertTemplateStmt != nil {
+		if cerr := q.insertTemplateStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertTemplateStmt: %w", cerr)
 		}
 	}
 	return err
@@ -198,11 +214,13 @@ type Queries struct {
 	findExercisesBySubjectStmt    *sql.Stmt
 	findLessonByNameStmt          *sql.Stmt
 	findLessonsStmt               *sql.Stmt
+	findTemplatesStmt             *sql.Stmt
 	findUserByEmailStmt           *sql.Stmt
 	findUserByIdStmt              *sql.Stmt
 	insertExamStmt                *sql.Stmt
 	insertExerciseStmt            *sql.Stmt
 	insertLessonStmt              *sql.Stmt
+	insertTemplateStmt            *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -219,10 +237,12 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findExercisesBySubjectStmt:    q.findExercisesBySubjectStmt,
 		findLessonByNameStmt:          q.findLessonByNameStmt,
 		findLessonsStmt:               q.findLessonsStmt,
+		findTemplatesStmt:             q.findTemplatesStmt,
 		findUserByEmailStmt:           q.findUserByEmailStmt,
 		findUserByIdStmt:              q.findUserByIdStmt,
 		insertExamStmt:                q.insertExamStmt,
 		insertExerciseStmt:            q.insertExerciseStmt,
 		insertLessonStmt:              q.insertLessonStmt,
+		insertTemplateStmt:            q.insertTemplateStmt,
 	}
 }
