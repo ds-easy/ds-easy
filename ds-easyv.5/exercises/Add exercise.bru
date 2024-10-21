@@ -6,6 +6,13 @@ meta {
 
 post {
   url: http://localhost:8080/exercises
-  body: none
+  body: multipartForm
   auth: none
+}
+
+body:multipart-form {
+  exo_file: @file(/home/dbana/resume/icon2.png)
+  exercise_name: tes
+  lesson_name: integration
+  uploadedBy: admin@dseasy.com
 }

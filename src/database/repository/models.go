@@ -16,6 +16,8 @@ type Exam struct {
 	DateOfPassing sql.NullTime  `json:"date_of_passing"`
 	ExamNumber    sql.NullInt64 `json:"exam_number"`
 	ProfessorID   sql.NullInt64 `json:"professor_id"`
+	TemplateID    sql.NullInt64 `json:"template_id"`
+	Foreign       interface{}   `json:"foreign"`
 }
 
 type ExamsExercise struct {
@@ -42,6 +44,16 @@ type Lesson struct {
 	LessonName string       `json:"lesson_name"`
 	Year       string       `json:"year"`
 	Subject    string       `json:"subject"`
+}
+
+type Template struct {
+	ID           int64        `json:"id"`
+	CreatedAt    sql.NullTime `json:"created_at"`
+	UpdatedAt    sql.NullTime `json:"updated_at"`
+	DeletedAt    sql.NullTime `json:"deleted_at"`
+	UploadedBy   int64        `json:"uploaded_by"`
+	PbFileID     string       `json:"pb_file_id"`
+	TemplateName string       `json:"template_name"`
 }
 
 type User struct {

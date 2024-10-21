@@ -1,6 +1,4 @@
 -- Active: 1720732902098@@127.0.0.1@3306
-DROP TABLE IF EXISTS users;
-
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -12,8 +10,6 @@ CREATE TABLE users (
     password TEXT NOT NULL,
     admin INTEGER NOT NULL CHECK (admin IN (0, 1))
 );
-
-DROP TABLE IF EXISTS lessons;
 
 CREATE TABLE lessons (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,8 +29,6 @@ CREATE TABLE lessons (
     )
 );
 
-DROP TABLE IF EXISTS exercises;
-
 CREATE TABLE exercises (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -48,8 +42,6 @@ CREATE TABLE exercises (
     FOREIGN KEY (uploaded_by) REFERENCES users (id)
 );
 
-DROP TABLE IF EXISTS exams;
-
 CREATE TABLE exams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -58,10 +50,9 @@ CREATE TABLE exams (
     date_of_passing DATETIME,
     exam_number INTEGER,
     professor_id INTEGER,
-    FOREIGN KEY (professor_id) REFERENCES users (id)
+    template_id INTEGER,
+    FOREIGN KEY (professor_id) REFERENCES users (id) FOREIGN KEY (template_id) REFERENCES templates (id)
 );
-
-DROP TABLE IF EXISTS exams_exercises;
 
 CREATE TABLE exams_exercises (
     exam_id INTEGER,
@@ -69,4 +60,15 @@ CREATE TABLE exams_exercises (
     FOREIGN KEY (exam_id) REFERENCES exams (id),
     FOREIGN KEY (exercise_id) REFERENCES exercises (id),
     PRIMARY KEY (exam_id, exercise_id)
+);
+
+CREATE TABLE templates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME,
+    uploaded_by INTEGER NOT NULL,
+    pb_file_id TEXT UNIQUE NOT NULL,
+    template_name TEXT NOT NULL,
+    FOREIGN KEY (uploaded_by) REFERENCES users (id)
 );
