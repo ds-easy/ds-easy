@@ -37,6 +37,7 @@ func (s Service) InsertTemplateHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("InsertTemplateHandler")
 	file, _, err := r.FormFile("template_file")
 	uploadedBy := r.FormValue("uploadedBy")
+	templateName := r.FormValue("template_name")
 	if err != nil {
 		log.Error("Errors occured", err)
 		w.WriteHeader(500)
@@ -44,7 +45,7 @@ func (s Service) InsertTemplateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	insertedTemplate, err := insertTemplate(s.Queries, file, uploadedBy)
+	insertedTemplate, err := insertTemplate(s.Queries, file, templateName, uploadedBy)
 	if err != nil {
 		log.Error("Errors occured", err)
 		w.WriteHeader(500)
@@ -61,8 +62,8 @@ func (s Service) InsertTemplateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-func insertTemplate(q repository.Queries, file multipart.File, uploadedBy string) (repository.Template, error) {
-	pb_id, err := utils.UploadToPocketBase(file, "test", TEMPLATE)
+func insertTemplate(q repository.Queries, file multipart.File, templateName, uploadedBy string) (repository.Template, error) {
+	pb_id, err := utils.UploadToPocketBase(file, templateName, TEMPLATE)
 	if err != nil {
 		log.Error("Errors occured ", err)
 		return repository.Template{}, err
@@ -75,8 +76,9 @@ func insertTemplate(q repository.Queries, file multipart.File, uploadedBy string
 	}
 
 	payload := repository.InsertTemplateParams{
-		PbFileID:   pb_id,
-		UploadedBy: user.ID,
+		PbFileID:     pb_id,
+		UploadedBy:   user.ID,
+		TemplateName: templateName,
 	}
 
 	insertedTemplate, err := q.InsertTemplate(context.TODO(), payload)

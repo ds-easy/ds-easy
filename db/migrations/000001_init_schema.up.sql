@@ -50,7 +50,8 @@ CREATE TABLE exams (
     date_of_passing DATETIME,
     exam_number INTEGER,
     professor_id INTEGER,
-    FOREIGN KEY (professor_id) REFERENCES users (id)
+    template_id INTEGER,
+    FOREIGN KEY (professor_id) REFERENCES users (id) FOREIGN KEY (template_id) REFERENCES templates (id)
 );
 
 CREATE TABLE exams_exercises (
@@ -61,12 +62,13 @@ CREATE TABLE exams_exercises (
     PRIMARY KEY (exam_id, exercise_id)
 );
 
-CREATE TABLE template (
+CREATE TABLE templates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     deleted_at DATETIME,
     uploaded_by INTEGER NOT NULL,
     pb_file_id TEXT UNIQUE NOT NULL,
+    template_name TEXT NOT NULL,
     FOREIGN KEY (uploaded_by) REFERENCES users (id)
 );

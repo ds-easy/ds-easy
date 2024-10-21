@@ -11,7 +11,7 @@ import (
 )
 
 const findExams = `-- name: FindExams :many
-SELECT id, created_at, updated_at, deleted_at, date_of_passing, exam_number, professor_id FROM exams
+SELECT id, created_at, updated_at, deleted_at, date_of_passing, exam_number, professor_id, template_id, "foreign" FROM exams
 `
 
 func (q *Queries) FindExams(ctx context.Context) ([]Exam, error) {
@@ -31,6 +31,8 @@ func (q *Queries) FindExams(ctx context.Context) ([]Exam, error) {
 			&i.DateOfPassing,
 			&i.ExamNumber,
 			&i.ProfessorID,
+			&i.TemplateID,
+			&i.Foreign,
 		); err != nil {
 			return nil, err
 		}
@@ -52,7 +54,7 @@ INSERT INTO
         exam_number,
         professor_id
     )
-VALUES (?, ?, ?) RETURNING id, created_at, updated_at, deleted_at, date_of_passing, exam_number, professor_id
+VALUES (?, ?, ?) RETURNING id, created_at, updated_at, deleted_at, date_of_passing, exam_number, professor_id, template_id, "foreign"
 `
 
 type InsertExamParams struct {
@@ -72,6 +74,8 @@ func (q *Queries) InsertExam(ctx context.Context, arg InsertExamParams) (Exam, e
 		&i.DateOfPassing,
 		&i.ExamNumber,
 		&i.ProfessorID,
+		&i.TemplateID,
+		&i.Foreign,
 	)
 	return i, err
 }

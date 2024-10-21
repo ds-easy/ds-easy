@@ -1,7 +1,11 @@
 -- name: FindTemplates :many
-SELECT * FROM template;
+SELECT * FROM templates;
 
 -- name: InsertTemplate :one
 INSERT INTO
-    template (uploaded_by, pb_file_id)
-VALUES (?, ?) RETURNING *;
+    templates (
+        uploaded_by,
+        pb_file_id,
+        template_name
+    )
+VALUES (?, ?, ?) RETURNING *;

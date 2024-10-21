@@ -10,7 +10,7 @@ import (
 )
 
 const findTemplates = `-- name: FindTemplates :many
-SELECT id, created_at, updated_at, deleted_at, uploaded_by, pb_file_id FROM template
+SELECT id, created_at, updated_at, deleted_at, uploaded_by, pb_file_id, template_name FROM templates
 `
 
 func (q *Queries) FindTemplates(ctx context.Context) ([]Template, error) {
@@ -29,6 +29,7 @@ func (q *Queries) FindTemplates(ctx context.Context) ([]Template, error) {
 			&i.DeletedAt,
 			&i.UploadedBy,
 			&i.PbFileID,
+			&i.TemplateName,
 		); err != nil {
 			return nil, err
 		}
@@ -45,17 +46,22 @@ func (q *Queries) FindTemplates(ctx context.Context) ([]Template, error) {
 
 const insertTemplate = `-- name: InsertTemplate :one
 INSERT INTO
-    template (uploaded_by, pb_file_id)
-VALUES (?, ?) RETURNING id, created_at, updated_at, deleted_at, uploaded_by, pb_file_id
+    templates (
+        uploaded_by,
+        pb_file_id,
+        template_name
+    )
+VALUES (?, ?, ?) RETURNING id, created_at, updated_at, deleted_at, uploaded_by, pb_file_id, template_name
 `
 
 type InsertTemplateParams struct {
-	UploadedBy int64  `json:"uploaded_by"`
-	PbFileID   string `json:"pb_file_id"`
+	UploadedBy   int64  `json:"uploaded_by"`
+	PbFileID     string `json:"pb_file_id"`
+	TemplateName string `json:"template_name"`
 }
 
 func (q *Queries) InsertTemplate(ctx context.Context, arg InsertTemplateParams) (Template, error) {
-	row := q.queryRow(ctx, q.insertTemplateStmt, insertTemplate, arg.UploadedBy, arg.PbFileID)
+	row := q.queryRow(ctx, q.insertTemplateStmt, insertTemplate, arg.UploadedBy, arg.PbFileID, arg.TemplateName)
 	var i Template
 	err := row.Scan(
 		&i.ID,
@@ -64,6 +70,7 @@ func (q *Queries) InsertTemplate(ctx context.Context, arg InsertTemplateParams) 
 		&i.DeletedAt,
 		&i.UploadedBy,
 		&i.PbFileID,
+		&i.TemplateName,
 	)
 	return i, err
 }

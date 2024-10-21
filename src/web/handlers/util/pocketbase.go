@@ -56,6 +56,14 @@ func UploadToPocketBase(file multipart.File, fileName, collection string) (strin
 	}
 	defer resp.Body.Close()
 
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Error reading response body:", err)
+		return "", err
+	}
+
+	log.Println("Response Body:", string(bodyBytes))
+
 	// Check response status
 	if resp.StatusCode != http.StatusOK {
 		log.Error("bad response status: ", resp.Status)
@@ -65,12 +73,6 @@ func UploadToPocketBase(file multipart.File, fileName, collection string) (strin
 	response := struct {
 		Id string `json:"id"`
 	}{}
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Println("Error reading response body:", err)
-		return "", err
-	}
 
 	err = json.Unmarshal(bodyBytes, &response)
 	if err != nil {
