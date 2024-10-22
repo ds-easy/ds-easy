@@ -39,38 +39,6 @@ INSERT INTO
         admin
     )
 VALUES (
-        'Noaman',
-        'Fakhir Aboulhouda',
-        'noaman.fakhir@dseasy.com',
-        'athiesmismypassion',
-        true
-    );
-
-INSERT INTO
-    users (
-        first_name,
-        last_name,
-        email,
-        password,
-        admin
-    )
-VALUES (
-        'Yassine',
-        'Ouchna',
-        'yassine.ouchna@dseasy.com',
-        'athiesmismypassion',
-        true
-    );
-
-INSERT INTO
-    users (
-        first_name,
-        last_name,
-        email,
-        password,
-        admin
-    )
-VALUES (
         'lhrba',
         'l7ma9',
         'lhrba.l7ma9@dseasy.com',
