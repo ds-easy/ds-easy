@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (s Service) RegisterExerciseRoutes() {
+func (s Service) registerExerciseRoutes() {
 	baseUrl := "/exercises"
 
 	s.Mux.HandleFunc(baseUrl, s.getExercisesHandler).Methods("GET")

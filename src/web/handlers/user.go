@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (s Service) RegisterUserRoutes() {
+func (s Service) registerUserRoutes() {
 	baseUrl := "/users"
 
 	s.Mux.HandleFunc(baseUrl, s.getUsersHandler).Methods("GET")

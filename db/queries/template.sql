@@ -9,3 +9,6 @@ INSERT INTO
         template_name
     )
 VALUES (?, ?, ?) RETURNING *;
+
+-- name: FindTemplateByName :one
+SELECT * FROM templates WHERE template_name = ? LIMIT 1;

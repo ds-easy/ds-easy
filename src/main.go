@@ -106,10 +106,7 @@ func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 		Mux:     r,
 	}
 
-	service.RegisterUserRoutes()
-	service.RegisterLessonRoutes()
-	service.RegisterExerciseRoutes()
-	service.RegisterTemplateRoutes()
+	service.RegisterRoutes()
 
 	return r
 }

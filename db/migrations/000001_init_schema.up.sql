@@ -49,14 +49,14 @@ CREATE TABLE exams (
     deleted_at DATETIME,
     date_of_passing DATETIME,
     exam_number INTEGER,
-    professor_id INTEGER,
-    template_id INTEGER,
+    professor_id INTEGER NOT NULL,
+    template_id INTEGER NOT NULL,
     FOREIGN KEY (professor_id) REFERENCES users (id) FOREIGN KEY (template_id) REFERENCES templates (id)
 );
 
 CREATE TABLE exams_exercises (
-    exam_id INTEGER,
-    exercise_id INTEGER,
+    exam_id INTEGER NOT NULL,
+    exercise_id INTEGER NOT NULL,
     FOREIGN KEY (exam_id) REFERENCES exams (id),
     FOREIGN KEY (exercise_id) REFERENCES exercises (id),
     PRIMARY KEY (exam_id, exercise_id)

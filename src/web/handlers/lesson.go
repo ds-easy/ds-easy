@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (s Service) RegisterLessonRoutes() {
+func (s Service) registerLessonRoutes() {
 	baseUrl := "/lessons"
 
 	s.Mux.HandleFunc(baseUrl, s.getLessonsHandler).Methods("GET")

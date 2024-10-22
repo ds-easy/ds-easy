@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (s Service) RegisterTemplateRoutes() {
+func (s Service) registerTemplateRoutes() {
 	baseUrl := "/templates"
 
 	s.Mux.HandleFunc(baseUrl, s.getTemplatesHandler).Methods("GET")

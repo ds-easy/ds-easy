@@ -15,14 +15,14 @@ type Exam struct {
 	DeletedAt     sql.NullTime  `json:"deleted_at"`
 	DateOfPassing sql.NullTime  `json:"date_of_passing"`
 	ExamNumber    sql.NullInt64 `json:"exam_number"`
-	ProfessorID   sql.NullInt64 `json:"professor_id"`
-	TemplateID    sql.NullInt64 `json:"template_id"`
+	ProfessorID   int64         `json:"professor_id"`
+	TemplateID    int64         `json:"template_id"`
 	Foreign       interface{}   `json:"foreign"`
 }
 
 type ExamsExercise struct {
-	ExamID     sql.NullInt64 `json:"exam_id"`
-	ExerciseID sql.NullInt64 `json:"exercise_id"`
+	ExamID     int64 `json:"exam_id"`
+	ExerciseID int64 `json:"exercise_id"`
 }
 
 type Exercise struct {
