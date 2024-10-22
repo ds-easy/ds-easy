@@ -10,6 +10,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type ResponseBody struct {
+	CollectionID   string `json:"collectionId"`
+	CollectionName string `json:"collectionName"`
+	Created        string `json:"created"`
+	File           string `json:"file"`
+	ID             string `json:"id"`
+	Updated        string `json:"updated"`
+}
+
 func UploadToPocketBase(file multipart.File, fileName, collection string) (string, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -82,4 +91,47 @@ func UploadToPocketBase(file multipart.File, fileName, collection string) (strin
 
 	// Return the "id" from the response
 	return response.Id, nil
+}
+
+func GetRecordInfo(collectionName, id string) (ResponseBody, error) {
+	url := "http://localhost:8090/api/collections/" + collectionName + "/records/" + id
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return ResponseBody{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ResponseBody{}, err
+	}
+
+	var responseBody ResponseBody
+	err = json.Unmarshal(body, &responseBody)
+	if err != nil {
+		return ResponseBody{}, err
+	}
+
+	return responseBody, nil
+}
+
+func DownloadFromPocketBase(collectionName, id, fileName string) ([]byte, error) {
+	url := "http://127.0.0.1:8090/api/files/" + collectionName + "/" + id + "/" + fileName
+	log.Info("accessing ... ", url)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Info("Error:", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Info("Error:", err)
+		return nil, err
+	}
+
+	return body, nil
 }
