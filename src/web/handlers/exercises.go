@@ -64,12 +64,6 @@ func (s Service) addExerciseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Service) insertExercise(file multipart.File, exerciseName, lessonName, uploadedBy string) (repository.Exercise, error) {
-	pb_id, err := utils.UploadToPocketBase(file, exerciseName, EXO_FILES)
-	if err != nil {
-		log.Error("Errors occured ", err)
-		return repository.Exercise{}, err
-	}
-
 	lesson, err := s.Queries.FindLessonByName(context.TODO(), lessonName)
 	if err != nil {
 		log.Error("Errors occured ", err)
@@ -77,6 +71,12 @@ func (s Service) insertExercise(file multipart.File, exerciseName, lessonName, u
 	}
 
 	user, err := s.Queries.FindUserByEmail(context.TODO(), uploadedBy)
+	if err != nil {
+		log.Error("Errors occured ", err)
+		return repository.Exercise{}, err
+	}
+
+	pb_id, err := utils.UploadToPocketBase(file, exerciseName, EXO_FILES)
 	if err != nil {
 		log.Error("Errors occured ", err)
 		return repository.Exercise{}, err

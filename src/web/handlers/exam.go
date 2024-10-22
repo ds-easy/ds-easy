@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"ds-easy/src/database/repository"
 	"encoding/json"
 	"net/http"
@@ -51,45 +52,22 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	examExercises, err := s.Queries.FindRandomExercisesByLessonNameWithLimit(r.Context(), repository.FindRandomExercisesByLessonNameWithLimitParams{
+	exoParams := repository.FindRandomExercisesByLessonNameWithLimitParams{
 		LessonName: payload.LessonName,
 		Limit:      payload.Limit,
-	})
-	if err != nil {
-		log.Error("Errors occured", err)
-		w.WriteHeader(500)
-		return
 	}
 
-	template, err := s.Queries.FindTemplateByName(r.Context(), payload.TemplateName)
-	if err != nil {
-		log.Error("Errors occured", err)
-		w.WriteHeader(500)
-		return
-	}
-
-	exam, err := s.Queries.InsertExam(r.Context(), repository.InsertExamParams{
+	insertParams := repository.InsertExamParams{
 		DateOfPassing: payload.DateOfPassing,
 		ExamNumber:    payload.ExamNumber,
 		ProfessorID:   payload.ProfessorID,
-		TemplateID:    template.ID,
-	})
+	}
+
+	exam, err := generateExam(s.Queries, exoParams, insertParams, payload.TemplateName)
 	if err != nil {
 		log.Error("Errors occured", err)
 		w.WriteHeader(500)
 		return
-	}
-
-	for _, v := range examExercises {
-		err = s.Queries.InsertExamExercise(r.Context(), repository.InsertExamExerciseParams{
-			ExamID:     exam.ID,
-			ExerciseID: v.ID,
-		})
-		if err != nil {
-			log.Error("Errors occured", err)
-			w.WriteHeader(500)
-			return
-		}
 	}
 
 	jsonResp, err := json.Marshal(exam)
@@ -101,4 +79,42 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(jsonResp)
+}
+
+func generateExam(q repository.Queries,
+	exoParams repository.FindRandomExercisesByLessonNameWithLimitParams,
+	insertExamParams repository.InsertExamParams,
+	templateName string) (repository.Exam, error) {
+	examExercises, err := q.FindRandomExercisesByLessonNameWithLimit(context.TODO(), exoParams)
+	if err != nil {
+		log.Error("Errors occured", err)
+		return repository.Exam{}, err
+	}
+
+	template, err := q.FindTemplateByName(context.TODO(), templateName)
+	if err != nil {
+		log.Error("Errors occured", err)
+		return repository.Exam{}, err
+	}
+
+	insertExamParams.TemplateID = template.ID
+
+	exam, err := q.InsertExam(context.TODO(), insertExamParams)
+	if err != nil {
+		log.Error("Errors occured", err)
+		return repository.Exam{}, err
+	}
+
+	for _, v := range examExercises {
+		err = q.InsertExamExercise(context.TODO(), repository.InsertExamExerciseParams{
+			ExamID:     exam.ID,
+			ExerciseID: v.ID,
+		})
+		if err != nil {
+			log.Error("Errors occured", err)
+			return repository.Exam{}, err
+		}
+	}
+
+	return exam, nil
 }
