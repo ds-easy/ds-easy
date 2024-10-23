@@ -6,6 +6,8 @@ package repository
 
 import (
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 type Exam struct {
@@ -44,6 +46,12 @@ type Lesson struct {
 	LessonName string       `json:"lesson_name"`
 	Year       string       `json:"year"`
 	Subject    string       `json:"subject"`
+}
+
+type Session struct {
+	ID         uuid.UUID    `json:"id"`
+	UserID     int64        `json:"user_id"`
+	Expiration sql.NullTime `json:"expiration"`
 }
 
 type Template struct {

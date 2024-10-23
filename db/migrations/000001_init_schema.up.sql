@@ -11,6 +11,14 @@ CREATE TABLE users (
     admin INTEGER NOT NULL CHECK (admin IN (0, 1))
 );
 
+CREATE TABLE sessions (
+	id         uuid PRIMARY KEY,
+	user_id    INTEGER NOT NULL,
+	expiration DATETIME DEFAULT (datetime('now', '+3 days')),
+    -- dateadd(minute, 10, GetDate()),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 CREATE TABLE lessons (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
