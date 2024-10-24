@@ -3,14 +3,16 @@ package handlers
 import (
 	"context"
 	"ds-easy/src/database/repository"
+	"ds-easy/src/web"
+	utils "ds-easy/src/web/handlers/util"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
 
-	"github.com/google/uuid"
+	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -22,15 +24,14 @@ var (
 func (s Service) RegisterAuthRoutes() {
 	s.Mux.HandleFunc("/login", s.login)
 	s.Mux.HandleFunc("/logout", s.logout)
+	s.Mux.HandleFunc("/protected", s.AuthMiddleware(s.protected))
 }
 
 func (s Service) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session, _ := store.Get(r, "session-cookie")
 		if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
-			// TODO: which status to return ?
-			// http.Error(w, "Forbidden", http.StatusForbidden)
-			http.NotFound(w, r)
+			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
 
@@ -52,18 +53,17 @@ func (s Service) getUserFromSession(r *http.Request) (repository.User, error) {
 		return user, err
 	}
 
-	sessionID, ok := session.Values["sessionID"].(string)
+	jwt, ok := session.Values["JWT"].(string)
 	if !ok {
-		return user, errors.New("Session ID not found or invalid")
+		return user, errors.New("JWT not found or invalid")
 	}
-	var server_session repository.Session
-	server_session, err = s.Queries.FindSessionById(r.Context(), uuid.MustParse(sessionID))
 
+	userId, err := utils.PBGetUserId(jwt)
 	if err != nil {
 		return user, err
 	}
 
-	user, err = s.Queries.FindUserById(r.Context(), server_session.UserID)
+	user, err = s.Queries.FindUserByPBId(r.Context(), userId)
 	if err != nil {
 		return user, err
 	}
@@ -80,35 +80,36 @@ func (s Service) login(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "GET" {
 		log.Println("Request to GET /login")
+		templ.Handler(web.LoginPage()).ServeHTTP(w, r)
 		return
 	}
 	if r.Method == "POST" {
 		log.Println("Request to POST /login")
 		// Authentication
-		username := r.FormValue("login")
+		email := r.FormValue("identity")
 		password := r.FormValue("password")
 
 		// DEBUG:
-		log.Println("\tusername: ", username, "\tpassword: ", password)
+		log.Debugln("login: ", email, "\tpassword: ", password)
 
 		var user repository.User
-		user, err := s.Queries.FindUserByEmail(r.Context(), username)
+		user, err := s.Queries.FindUserByEmail(context.TODO(), email)
 
-		if err := CheckPassword(user, password); err != nil {
+		token, err := utils.PBCheckPassword(user, password)
+		if err != nil {
 			log.Println("Wrong password")
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 
 		// Set user as authenticated
-		err = s.createSession(w, r, user.ID)
+		err = s.createSession(w, r, token)
 		if err != nil {
 			log.Println("Couldn't create session: ", err)
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		http.Redirect(w, r, "/protected", http.StatusSeeOther)
 		return
 	}
 }
@@ -117,53 +118,40 @@ func (s Service) logout(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session-cookie")
 	log.Println("Request to /logout")
 
-	var server_session repository.Session
-	var err error
-	server_session.ID, err = uuid.Parse(session.Values["sessionID"].(string))
-	if err != nil {
-		log.Println("Error getting sessionID from cookie: ", err)
-	}
-	err = s.Queries.DeleteSession(r.Context(), server_session.ID)
-	if err != nil {
-		log.Println("Error deleting session from DB: ", err)
-	}
-
 	// Revoke users authentication
 	session.Values["authenticated"] = false
+	session.Values["JWT"] = ""
 	_ = session.Save(r, w)
 	log.Println("Successfully logged out !")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func (s Service) createSession(w http.ResponseWriter, r *http.Request, userID int64) error {
+func (s Service) createSession(w http.ResponseWriter, r *http.Request, jwt string) error {
 	session, err := store.Get(r, "session-cookie")
 	if err != nil {
 		return err
 	}
-	// Set session ID in Gorilla session cookie
-	// TODO: decide on server_session expiration date
-	// currently default value in sql is now + 3 days
-	var server_session_params = repository.CreateSessionParams{
-		ID:     uuid.New(),
-		UserID: userID,
-	}
 
+	// Set jwt in Gorilla session cookie
 	session.Values["authenticated"] = true
-	session.Values["sessionID"] = server_session_params.ID.String()
+	session.Values["JWT"] = jwt
 	err = session.Save(r, w)
-	if err != nil {
-		return err
-	}
-
-	_, err = s.Queries.CreateSession(r.Context(), server_session_params)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func CheckPassword(u repository.User, password string) error {
-	bytePassword := []byte(password)
-	byteHashedPassword := []byte(u.Password)
-	return bcrypt.CompareHashAndPassword(byteHashedPassword, bytePassword)
+func (s Service) protected(w http.ResponseWriter, r *http.Request) {
+	log.Info("GET /protected")
+	resp := make(map[string]string)
+	resp["message"] = "User logged successfully"
+	resp["user"] = r.Context().Value("user").(repository.User).PbID
+
+	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		log.Fatalf("error handling JSON marshal. Err: %v", err)
+	}
+
+	_, _ = w.Write(jsonResp)
 }

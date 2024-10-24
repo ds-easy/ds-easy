@@ -63,7 +63,7 @@ func (s Service) InsertTemplateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func insertTemplate(q repository.Queries, file multipart.File, templateName, uploadedBy string) (repository.Template, error) {
-	pb_id, err := utils.UploadToPocketBase(file, templateName, TEMPLATE)
+	pb_id, err := utils.PBUploadFile(file, templateName, TEMPLATE)
 	if err != nil {
 		log.Error("Errors occured ", err)
 		return repository.Template{}, err

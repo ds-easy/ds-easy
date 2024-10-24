@@ -12,48 +12,48 @@ import (
 const addUser = `-- name: AddUser :one
 INSERT INTO
     users (
+        pb_id,
         first_name,
         last_name,
         email,
-        password,
         admin
     )
-VALUES (?, ?, ?, ?, ?) RETURNING id, created_at, updated_at, deleted_at, first_name, last_name, email, password, admin
+VALUES (?, ?, ?, ?, ?) RETURNING id, pb_id, created_at, updated_at, deleted_at, first_name, last_name, email, admin
 `
 
 type AddUserParams struct {
+	PbID      string `json:"pb_id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
-	Password  string `json:"password"`
 	Admin     int64  `json:"admin"`
 }
 
 func (q *Queries) AddUser(ctx context.Context, arg AddUserParams) (User, error) {
 	row := q.queryRow(ctx, q.addUserStmt, addUser,
+		arg.PbID,
 		arg.FirstName,
 		arg.LastName,
 		arg.Email,
-		arg.Password,
 		arg.Admin,
 	)
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.PbID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
-		&i.Password,
 		&i.Admin,
 	)
 	return i, err
 }
 
 const findAllUsers = `-- name: FindAllUsers :many
-SELECT id, created_at, updated_at, deleted_at, first_name, last_name, email, password, admin FROM users
+SELECT id, pb_id, created_at, updated_at, deleted_at, first_name, last_name, email, admin FROM users
 `
 
 func (q *Queries) FindAllUsers(ctx context.Context) ([]User, error) {
@@ -67,13 +67,13 @@ func (q *Queries) FindAllUsers(ctx context.Context) ([]User, error) {
 		var i User
 		if err := rows.Scan(
 			&i.ID,
+			&i.PbID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.FirstName,
 			&i.LastName,
 			&i.Email,
-			&i.Password,
 			&i.Admin,
 		); err != nil {
 			return nil, err
@@ -90,7 +90,7 @@ func (q *Queries) FindAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const findUserByEmail = `-- name: FindUserByEmail :one
-SELECT id, created_at, updated_at, deleted_at, first_name, last_name, email, password, admin FROM users where email = ?
+SELECT id, pb_id, created_at, updated_at, deleted_at, first_name, last_name, email, admin FROM users where email = ?
 `
 
 func (q *Queries) FindUserByEmail(ctx context.Context, email string) (User, error) {
@@ -98,20 +98,20 @@ func (q *Queries) FindUserByEmail(ctx context.Context, email string) (User, erro
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.PbID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
-		&i.Password,
 		&i.Admin,
 	)
 	return i, err
 }
 
 const findUserById = `-- name: FindUserById :one
-SELECT id, created_at, updated_at, deleted_at, first_name, last_name, email, password, admin FROM users where id = ?
+SELECT id, pb_id, created_at, updated_at, deleted_at, first_name, last_name, email, admin FROM users where id = ?
 `
 
 func (q *Queries) FindUserById(ctx context.Context, id int64) (User, error) {
@@ -119,13 +119,34 @@ func (q *Queries) FindUserById(ctx context.Context, id int64) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.PbID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
-		&i.Password,
+		&i.Admin,
+	)
+	return i, err
+}
+
+const findUserByPBId = `-- name: FindUserByPBId :one
+SELECT id, pb_id, created_at, updated_at, deleted_at, first_name, last_name, email, admin FROM users where pb_id = ?
+`
+
+func (q *Queries) FindUserByPBId(ctx context.Context, pbID string) (User, error) {
+	row := q.queryRow(ctx, q.findUserByPBIdStmt, findUserByPBId, pbID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.PbID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
 		&i.Admin,
 	)
 	return i, err

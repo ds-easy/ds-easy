@@ -1,0 +1,21 @@
+meta {
+  name: Login
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:8080/login
+  body: multipartForm
+  auth: none
+}
+
+body:text {
+  identity: test43@test.com
+  password: password12
+}
+
+body:multipart-form {
+  identity: test43@test.com
+  password: password12
+}

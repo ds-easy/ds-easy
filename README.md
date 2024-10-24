@@ -16,6 +16,10 @@ migrate database
 ```bash
 migrate -database "sqlite://test.db" -path db/migrations/ up
 ```
+OR
+```bash
+make migrate
+```
 
 ## MakeFile
 

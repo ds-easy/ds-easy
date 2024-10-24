@@ -27,12 +27,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.addUserStmt, err = db.PrepareContext(ctx, addUser); err != nil {
 		return nil, fmt.Errorf("error preparing query AddUser: %w", err)
 	}
-	if q.createSessionStmt, err = db.PrepareContext(ctx, createSession); err != nil {
-		return nil, fmt.Errorf("error preparing query CreateSession: %w", err)
-	}
-	if q.deleteSessionStmt, err = db.PrepareContext(ctx, deleteSession); err != nil {
-		return nil, fmt.Errorf("error preparing query DeleteSession: %w", err)
-	}
 	if q.findAllLessonNamesStmt, err = db.PrepareContext(ctx, findAllLessonNames); err != nil {
 		return nil, fmt.Errorf("error preparing query FindAllLessonNames: %w", err)
 	}
@@ -60,9 +54,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findLessonsStmt, err = db.PrepareContext(ctx, findLessons); err != nil {
 		return nil, fmt.Errorf("error preparing query FindLessons: %w", err)
 	}
-	if q.findSessionByIdStmt, err = db.PrepareContext(ctx, findSessionById); err != nil {
-		return nil, fmt.Errorf("error preparing query FindSessionById: %w", err)
-	}
 	if q.findTemplatesStmt, err = db.PrepareContext(ctx, findTemplates); err != nil {
 		return nil, fmt.Errorf("error preparing query FindTemplates: %w", err)
 	}
@@ -71,6 +62,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.findUserByIdStmt, err = db.PrepareContext(ctx, findUserById); err != nil {
 		return nil, fmt.Errorf("error preparing query FindUserById: %w", err)
+	}
+	if q.findUserByPBIdStmt, err = db.PrepareContext(ctx, findUserByPBId); err != nil {
+		return nil, fmt.Errorf("error preparing query FindUserByPBId: %w", err)
 	}
 	if q.insertExamStmt, err = db.PrepareContext(ctx, insertExam); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertExam: %w", err)
@@ -92,16 +86,6 @@ func (q *Queries) Close() error {
 	if q.addUserStmt != nil {
 		if cerr := q.addUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing addUserStmt: %w", cerr)
-		}
-	}
-	if q.createSessionStmt != nil {
-		if cerr := q.createSessionStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing createSessionStmt: %w", cerr)
-		}
-	}
-	if q.deleteSessionStmt != nil {
-		if cerr := q.deleteSessionStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing deleteSessionStmt: %w", cerr)
 		}
 	}
 	if q.findAllLessonNamesStmt != nil {
@@ -149,11 +133,6 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findLessonsStmt: %w", cerr)
 		}
 	}
-	if q.findSessionByIdStmt != nil {
-		if cerr := q.findSessionByIdStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing findSessionByIdStmt: %w", cerr)
-		}
-	}
 	if q.findTemplatesStmt != nil {
 		if cerr := q.findTemplatesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findTemplatesStmt: %w", cerr)
@@ -167,6 +146,11 @@ func (q *Queries) Close() error {
 	if q.findUserByIdStmt != nil {
 		if cerr := q.findUserByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findUserByIdStmt: %w", cerr)
+		}
+	}
+	if q.findUserByPBIdStmt != nil {
+		if cerr := q.findUserByPBIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findUserByPBIdStmt: %w", cerr)
 		}
 	}
 	if q.insertExamStmt != nil {
@@ -229,8 +213,6 @@ type Queries struct {
 	db                            DBTX
 	tx                            *sql.Tx
 	addUserStmt                   *sql.Stmt
-	createSessionStmt             *sql.Stmt
-	deleteSessionStmt             *sql.Stmt
 	findAllLessonNamesStmt        *sql.Stmt
 	findAllUsersStmt              *sql.Stmt
 	findExamsStmt                 *sql.Stmt
@@ -240,10 +222,10 @@ type Queries struct {
 	findExercisesBySubjectStmt    *sql.Stmt
 	findLessonByNameStmt          *sql.Stmt
 	findLessonsStmt               *sql.Stmt
-	findSessionByIdStmt           *sql.Stmt
 	findTemplatesStmt             *sql.Stmt
 	findUserByEmailStmt           *sql.Stmt
 	findUserByIdStmt              *sql.Stmt
+	findUserByPBIdStmt            *sql.Stmt
 	insertExamStmt                *sql.Stmt
 	insertExerciseStmt            *sql.Stmt
 	insertLessonStmt              *sql.Stmt
@@ -255,8 +237,6 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		db:                            tx,
 		tx:                            tx,
 		addUserStmt:                   q.addUserStmt,
-		createSessionStmt:             q.createSessionStmt,
-		deleteSessionStmt:             q.deleteSessionStmt,
 		findAllLessonNamesStmt:        q.findAllLessonNamesStmt,
 		findAllUsersStmt:              q.findAllUsersStmt,
 		findExamsStmt:                 q.findExamsStmt,
@@ -266,10 +246,10 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findExercisesBySubjectStmt:    q.findExercisesBySubjectStmt,
 		findLessonByNameStmt:          q.findLessonByNameStmt,
 		findLessonsStmt:               q.findLessonsStmt,
-		findSessionByIdStmt:           q.findSessionByIdStmt,
 		findTemplatesStmt:             q.findTemplatesStmt,
 		findUserByEmailStmt:           q.findUserByEmailStmt,
 		findUserByIdStmt:              q.findUserByIdStmt,
+		findUserByPBIdStmt:            q.findUserByPBIdStmt,
 		insertExamStmt:                q.insertExamStmt,
 		insertExerciseStmt:            q.insertExerciseStmt,
 		insertLessonStmt:              q.insertLessonStmt,
