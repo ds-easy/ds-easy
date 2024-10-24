@@ -9,3 +9,9 @@ sql:
         emit_prepared_queries: true 
         package: "repository"
         out: "src/database/repository"
+        overrides:
+        - db_type: "uuid"
+          go_type:
+            import: "github.com/google/uuid"
+            type: "UUID"
+

@@ -17,6 +17,11 @@ clean:
 	@echo "Cleaning..."
 	@rm -rf tmp
 
+migrate:
+	rm -f test.db
+	migrate -database "sqlite://test.db" -path db/migrations/ up
+	sqlc generate
+
 # Live Reload
 watch:
 	@if command -v air > /dev/null; then \
@@ -34,4 +39,4 @@ watch:
 	    fi; \
 	fi
 
-.PHONY: all build run test clean
+.PHONY: all build run migrate watch clean

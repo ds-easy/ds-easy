@@ -64,7 +64,7 @@ func (s Service) addExerciseHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Service) insertExercise(file multipart.File, exerciseName, lessonName, uploadedBy string) (repository.Exercise, error) {
-	pb_id, err := utils.UploadToPocketBase(file, exerciseName, EXO_FILES)
+	pb_id, err := utils.PBUploadFile(file, exerciseName, EXO_FILES)
 	if err != nil {
 		log.Error("Errors occured ", err)
 		return repository.Exercise{}, err

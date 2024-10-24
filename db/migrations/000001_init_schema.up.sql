@@ -1,13 +1,13 @@
 -- Active: 1720732902098@@127.0.0.1@3306
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pb_id TEXT UNIQUE NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     deleted_at DATETIME,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
     admin INTEGER NOT NULL CHECK (admin IN (0, 1))
 );
 
