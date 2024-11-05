@@ -6,7 +6,9 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"os"
 
+	_ "github.com/joho/godotenv/autoload"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -43,7 +45,7 @@ func UploadToPocketBase(file multipart.File, fileName, collection string) (strin
 	}
 
 	// Create the POST request with the multipart form data
-	url := "http://127.0.0.1:8090/api/collections/" + collection + "/records"
+	url := os.Getenv("PB_URL") + "collections/" + collection + "/records"
 
 	log.Info("accessing ... ", url)
 
@@ -94,7 +96,7 @@ func UploadToPocketBase(file multipart.File, fileName, collection string) (strin
 }
 
 func GetRecordInfo(collectionName, id string) (ResponseBody, error) {
-	url := "http://localhost:8090/api/collections/" + collectionName + "/records/" + id
+	url := os.Getenv("PB_URL") + "collections/" + collectionName + "/records/" + id
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -117,7 +119,7 @@ func GetRecordInfo(collectionName, id string) (ResponseBody, error) {
 }
 
 func DownloadFromPocketBase(collectionName, id, fileName string) ([]byte, error) {
-	url := "http://127.0.0.1:8090/api/files/" + collectionName + "/" + id + "/" + fileName
+	url := os.Getenv("PB_URL") + "files/" + collectionName + "/" + id + "/" + fileName
 	log.Info("accessing ... ", url)
 
 	resp, err := http.Get(url)
