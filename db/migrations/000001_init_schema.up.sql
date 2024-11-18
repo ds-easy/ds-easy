@@ -44,11 +44,11 @@ CREATE TABLE exercises (
 
 CREATE TABLE exams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at DATETIME,
-    date_of_passing DATETIME,
-    exam_number INTEGER,
+    date_of_passing DATETIME NOT NULL,
+    exam_number INTEGER NOT NULL,
     professor_id INTEGER NOT NULL,
     template_id INTEGER NOT NULL,
     FOREIGN KEY (professor_id) REFERENCES users (id) FOREIGN KEY (template_id) REFERENCES templates (id)

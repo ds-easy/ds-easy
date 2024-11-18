@@ -137,5 +137,13 @@ func generateExam(q repository.Queries,
 		}
 	}
 
+	templateFile, err := utils.DownloadFromPocketBase(TEMPLATE, template.PbFileID, template.TemplateName)
+	if err != nil {
+		log.Error("Errors occured", err)
+		return repository.Exam{}, err
+	}
+
+	log.Info(templateFile)
+
 	return exam, nil
 }

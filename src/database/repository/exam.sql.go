@@ -7,7 +7,7 @@ package repository
 
 import (
 	"context"
-	"database/sql"
+	"time"
 )
 
 const findExams = `-- name: FindExams :many
@@ -59,10 +59,10 @@ VALUES (?, ?, ?, ?) RETURNING id, created_at, updated_at, deleted_at, date_of_pa
 `
 
 type InsertExamParams struct {
-	DateOfPassing sql.NullTime  `json:"date_of_passing"`
-	ExamNumber    sql.NullInt64 `json:"exam_number"`
-	ProfessorID   int64         `json:"professor_id"`
-	TemplateID    int64         `json:"template_id"`
+	DateOfPassing time.Time `json:"date_of_passing"`
+	ExamNumber    int64     `json:"exam_number"`
+	ProfessorID   int64     `json:"professor_id"`
+	TemplateID    int64     `json:"template_id"`
 }
 
 func (q *Queries) InsertExam(ctx context.Context, arg InsertExamParams) (Exam, error) {

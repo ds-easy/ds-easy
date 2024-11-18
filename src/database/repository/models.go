@@ -6,18 +6,19 @@ package repository
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Exam struct {
-	ID            int64         `json:"id"`
-	CreatedAt     sql.NullTime  `json:"created_at"`
-	UpdatedAt     sql.NullTime  `json:"updated_at"`
-	DeletedAt     sql.NullTime  `json:"deleted_at"`
-	DateOfPassing sql.NullTime  `json:"date_of_passing"`
-	ExamNumber    sql.NullInt64 `json:"exam_number"`
-	ProfessorID   int64         `json:"professor_id"`
-	TemplateID    int64         `json:"template_id"`
-	Foreign       interface{}   `json:"foreign"`
+	ID            int64        `json:"id"`
+	CreatedAt     time.Time    `json:"created_at"`
+	UpdatedAt     time.Time    `json:"updated_at"`
+	DeletedAt     sql.NullTime `json:"deleted_at"`
+	DateOfPassing time.Time    `json:"date_of_passing"`
+	ExamNumber    int64        `json:"exam_number"`
+	ProfessorID   int64        `json:"professor_id"`
+	TemplateID    int64        `json:"template_id"`
+	Foreign       interface{}  `json:"foreign"`
 }
 
 type ExamsExercise struct {
