@@ -1,0 +1,22 @@
+meta {
+  name: Generate Exam
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/exams
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "lesson_name": "integration",
+    "limit": 4,
+    "date_of_passing": "2006-01-02T15:04:05Z",
+    "exam_number": 2,
+    "professor_id": 1,
+    "template_name": "ELDS"
+  }
+}

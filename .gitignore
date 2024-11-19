@@ -30,3 +30,6 @@ main
 *templ.go
 
 *.db
+pocketbase
+
+pb_data

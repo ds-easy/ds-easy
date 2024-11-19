@@ -1,0 +1,26 @@
+meta {
+  name: Add user
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/users
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "first_name": "test_first",
+    "last_name": "test_last",
+    "email": "test43@test.com",
+    "password": "password12"
+  }
+  
+}
+
+body:multipart-form {
+  name: my name is
+  occupation: chika chika slim shady
+}

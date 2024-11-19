@@ -6,21 +6,21 @@ all: build
 build:
 	@echo "Building..."
 	@templ generate
-	@go build -o main cmd/api/main.go
+	@go build -o tmp/main src/main.go
 
 # Run the application
 run:
-	@go run cmd/api/main.go
-
-# Test the application
-test:
-	@echo "Testing..."
-	@go test ./tests -v
+	@go run src/main.go
 
 # Clean the binary
 clean:
 	@echo "Cleaning..."
-	@rm -f main
+	@rm -rf tmp
+
+migrate:
+	rm -f test.db
+	migrate -database "sqlite://test.db" -path db/migrations/ up
+	sqlc generate
 
 # Live Reload
 watch:
@@ -39,4 +39,4 @@ watch:
 	    fi; \
 	fi
 
-.PHONY: all build run test clean
+.PHONY: all build run migrate watch clean

@@ -1,0 +1,18 @@
+meta {
+  name: Add exercise
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8080/exercises
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  exo_file: @file(/home/dbana/resume/icon2.png)
+  exercise_name: tes
+  lesson_name: integration
+  uploadedBy: admin@dseasy.com
+}
