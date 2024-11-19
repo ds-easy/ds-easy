@@ -6,6 +6,7 @@ import (
 	"ds-easy/src/web"
 	handlers "ds-easy/src/web/handlers"
 	"encoding/json"
+
 	"fmt"
 	"net/http"
 	"os"
@@ -99,7 +100,8 @@ func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 		templ.Handler(web.HelloForm()).ServeHTTP(w, r)
 	})
 
-	r.HandleFunc("/hello", web.HelloWebHandler)
+	// r.HandleFunc("/hello", web.HelloWebHandler)
+	r.HandleFunc("/dashboard", web.HelloWebHandler)
 
 	service := handlers.Service{
 		Queries: queries,
@@ -107,6 +109,7 @@ func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 	}
 
 	service.RegisterRoutes()
+	service.RegisterAuthRoutes()
 
 	return r
 }

@@ -69,6 +69,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findUserByIdStmt, err = db.PrepareContext(ctx, findUserById); err != nil {
 		return nil, fmt.Errorf("error preparing query FindUserById: %w", err)
 	}
+	if q.findUserByPBIdStmt, err = db.PrepareContext(ctx, findUserByPBId); err != nil {
+		return nil, fmt.Errorf("error preparing query FindUserByPBId: %w", err)
+	}
 	if q.insertExamStmt, err = db.PrepareContext(ctx, insertExam); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertExam: %w", err)
 	}
@@ -164,6 +167,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findUserByIdStmt: %w", cerr)
 		}
 	}
+	if q.findUserByPBIdStmt != nil {
+		if cerr := q.findUserByPBIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findUserByPBIdStmt: %w", cerr)
+		}
+	}
 	if q.insertExamStmt != nil {
 		if cerr := q.insertExamStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing insertExamStmt: %w", cerr)
@@ -243,6 +251,7 @@ type Queries struct {
 	findTemplatesStmt                            *sql.Stmt
 	findUserByEmailStmt                          *sql.Stmt
 	findUserByIdStmt                             *sql.Stmt
+	findUserByPBIdStmt                           *sql.Stmt
 	insertExamStmt                               *sql.Stmt
 	insertExamExerciseStmt                       *sql.Stmt
 	insertExerciseStmt                           *sql.Stmt
@@ -269,6 +278,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findTemplatesStmt:                            q.findTemplatesStmt,
 		findUserByEmailStmt:                          q.findUserByEmailStmt,
 		findUserByIdStmt:                             q.findUserByIdStmt,
+		findUserByPBIdStmt:                           q.findUserByPBIdStmt,
 		insertExamStmt:                               q.insertExamStmt,
 		insertExamExerciseStmt:                       q.insertExamExerciseStmt,
 		insertExerciseStmt:                           q.insertExerciseStmt,

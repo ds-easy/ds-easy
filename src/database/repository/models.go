@@ -59,12 +59,12 @@ type Template struct {
 
 type User struct {
 	ID        int64        `json:"id"`
+	PbID      string       `json:"pb_id"`
 	CreatedAt sql.NullTime `json:"created_at"`
 	UpdatedAt sql.NullTime `json:"updated_at"`
 	DeletedAt sql.NullTime `json:"deleted_at"`
 	FirstName string       `json:"first_name"`
 	LastName  string       `json:"last_name"`
 	Email     string       `json:"email"`
-	Password  string       `json:"password"`
 	Admin     int64        `json:"admin"`
 }
