@@ -16,3 +16,11 @@ var (
 	EXO_FILES = "exo_files"
 	TEMPLATE  = "template"
 )
+
+func (s Service) RegisterRoutes() {
+	s.RegisterExamRoutes()
+	s.registerExerciseRoutes()
+	s.registerLessonRoutes()
+	s.registerTemplateRoutes()
+	s.registerUserRoutes()
+}

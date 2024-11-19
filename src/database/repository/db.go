@@ -54,6 +54,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findLessonsStmt, err = db.PrepareContext(ctx, findLessons); err != nil {
 		return nil, fmt.Errorf("error preparing query FindLessons: %w", err)
 	}
+	if q.findRandomExercisesByLessonNameWithLimitStmt, err = db.PrepareContext(ctx, findRandomExercisesByLessonNameWithLimit); err != nil {
+		return nil, fmt.Errorf("error preparing query FindRandomExercisesByLessonNameWithLimit: %w", err)
+	}
+	if q.findTemplateByNameStmt, err = db.PrepareContext(ctx, findTemplateByName); err != nil {
+		return nil, fmt.Errorf("error preparing query FindTemplateByName: %w", err)
+	}
 	if q.findTemplatesStmt, err = db.PrepareContext(ctx, findTemplates); err != nil {
 		return nil, fmt.Errorf("error preparing query FindTemplates: %w", err)
 	}
@@ -68,6 +74,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.insertExamStmt, err = db.PrepareContext(ctx, insertExam); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertExam: %w", err)
+	}
+	if q.insertExamExerciseStmt, err = db.PrepareContext(ctx, insertExamExercise); err != nil {
+		return nil, fmt.Errorf("error preparing query InsertExamExercise: %w", err)
 	}
 	if q.insertExerciseStmt, err = db.PrepareContext(ctx, insertExercise); err != nil {
 		return nil, fmt.Errorf("error preparing query InsertExercise: %w", err)
@@ -133,6 +142,16 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findLessonsStmt: %w", cerr)
 		}
 	}
+	if q.findRandomExercisesByLessonNameWithLimitStmt != nil {
+		if cerr := q.findRandomExercisesByLessonNameWithLimitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findRandomExercisesByLessonNameWithLimitStmt: %w", cerr)
+		}
+	}
+	if q.findTemplateByNameStmt != nil {
+		if cerr := q.findTemplateByNameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findTemplateByNameStmt: %w", cerr)
+		}
+	}
 	if q.findTemplatesStmt != nil {
 		if cerr := q.findTemplatesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findTemplatesStmt: %w", cerr)
@@ -156,6 +175,11 @@ func (q *Queries) Close() error {
 	if q.insertExamStmt != nil {
 		if cerr := q.insertExamStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing insertExamStmt: %w", cerr)
+		}
+	}
+	if q.insertExamExerciseStmt != nil {
+		if cerr := q.insertExamExerciseStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing insertExamExerciseStmt: %w", cerr)
 		}
 	}
 	if q.insertExerciseStmt != nil {
@@ -210,26 +234,29 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                            DBTX
-	tx                            *sql.Tx
-	addUserStmt                   *sql.Stmt
-	findAllLessonNamesStmt        *sql.Stmt
-	findAllUsersStmt              *sql.Stmt
-	findExamsStmt                 *sql.Stmt
-	findExercisesStmt             *sql.Stmt
-	findExercisesByLessonNameStmt *sql.Stmt
-	findExercisesByNameStmt       *sql.Stmt
-	findExercisesBySubjectStmt    *sql.Stmt
-	findLessonByNameStmt          *sql.Stmt
-	findLessonsStmt               *sql.Stmt
-	findTemplatesStmt             *sql.Stmt
-	findUserByEmailStmt           *sql.Stmt
-	findUserByIdStmt              *sql.Stmt
-	findUserByPBIdStmt            *sql.Stmt
-	insertExamStmt                *sql.Stmt
-	insertExerciseStmt            *sql.Stmt
-	insertLessonStmt              *sql.Stmt
-	insertTemplateStmt            *sql.Stmt
+	db                                           DBTX
+	tx                                           *sql.Tx
+	addUserStmt                                  *sql.Stmt
+	findAllLessonNamesStmt                       *sql.Stmt
+	findAllUsersStmt                             *sql.Stmt
+	findExamsStmt                                *sql.Stmt
+	findExercisesStmt                            *sql.Stmt
+	findExercisesByLessonNameStmt                *sql.Stmt
+	findExercisesByNameStmt                      *sql.Stmt
+	findExercisesBySubjectStmt                   *sql.Stmt
+	findLessonByNameStmt                         *sql.Stmt
+	findLessonsStmt                              *sql.Stmt
+	findRandomExercisesByLessonNameWithLimitStmt *sql.Stmt
+	findTemplateByNameStmt                       *sql.Stmt
+	findTemplatesStmt                            *sql.Stmt
+	findUserByEmailStmt                          *sql.Stmt
+	findUserByIdStmt                             *sql.Stmt
+	findUserByPBIdStmt                           *sql.Stmt
+	insertExamStmt                               *sql.Stmt
+	insertExamExerciseStmt                       *sql.Stmt
+	insertExerciseStmt                           *sql.Stmt
+	insertLessonStmt                             *sql.Stmt
+	insertTemplateStmt                           *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -246,13 +273,16 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findExercisesBySubjectStmt:    q.findExercisesBySubjectStmt,
 		findLessonByNameStmt:          q.findLessonByNameStmt,
 		findLessonsStmt:               q.findLessonsStmt,
-		findTemplatesStmt:             q.findTemplatesStmt,
-		findUserByEmailStmt:           q.findUserByEmailStmt,
-		findUserByIdStmt:              q.findUserByIdStmt,
-		findUserByPBIdStmt:            q.findUserByPBIdStmt,
-		insertExamStmt:                q.insertExamStmt,
-		insertExerciseStmt:            q.insertExerciseStmt,
-		insertLessonStmt:              q.insertLessonStmt,
-		insertTemplateStmt:            q.insertTemplateStmt,
+		findRandomExercisesByLessonNameWithLimitStmt: q.findRandomExercisesByLessonNameWithLimitStmt,
+		findTemplateByNameStmt:                       q.findTemplateByNameStmt,
+		findTemplatesStmt:                            q.findTemplatesStmt,
+		findUserByEmailStmt:                          q.findUserByEmailStmt,
+		findUserByIdStmt:                             q.findUserByIdStmt,
+		findUserByPBIdStmt:                           q.findUserByPBIdStmt,
+		insertExamStmt:                               q.insertExamStmt,
+		insertExamExerciseStmt:                       q.insertExamExerciseStmt,
+		insertExerciseStmt:                           q.insertExerciseStmt,
+		insertLessonStmt:                             q.insertLessonStmt,
+		insertTemplateStmt:                           q.insertTemplateStmt,
 	}
 }
