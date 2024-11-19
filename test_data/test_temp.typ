@@ -56,7 +56,6 @@
   block(width: 100%, inset: 8pt, radius: 4pt, stroke: 0.5pt + black)[
     *Instructions:*
     - Répondez à toutes les questions dans l'espace prévu à cet effet
-    - L'utilisation de la calculatrice #text(style: "italic")[est/n'est pas] autorisée
     - Écrivez lisiblement et justifiez vos réponses
     - Les documents ne sont pas autorisés sauf mention contraire
   ]
@@ -78,13 +77,13 @@
   ]
 }
 
-// Exemple d'utilisation
 #show: doc => exam(
-  title: "Examen Final",
-  course: "Mathématiques Avancées",
+  title: "Contrôle de Mathématiques",
+  course: "Mathématiques - Terminale Spécialité",
   date: "18 novembre 2024",
-  duration: "3 heures",
-  professor: "Dr. Martin",
-  school: "École Polytechnique",
+  duration: "2 heures",
+  professor: "Mme Bernard",
+  school: "Lycée Victor Hugo",
 )[
+  {{EXERCISES}}
 ]

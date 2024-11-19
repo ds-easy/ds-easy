@@ -6,7 +6,9 @@ import (
 	utils "ds-easy/src/web/handlers/util"
 	"encoding/json"
 	"net/http"
+	"strings"
 
+	gotypst "github.com/francescoalemanno/gotypst"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -26,7 +28,7 @@ func (s Service) testHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := utils.DownloadFromPocketBase(EXO_FILES, record.ID, record.File)
+	body, err := utils.DownloadFromPocketBase(EXO_FILES, record.ID)
 	if err != nil {
 		log.Error("is erroro ", err)
 		return
@@ -91,31 +93,24 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jsonResp, err := json.Marshal(exam)
-
-	if err != nil {
-		log.Error("Errors occured", err)
-		w.WriteHeader(500)
-		return
-	}
-
-	w.Write(jsonResp)
+	w.Header().Set("Content-type", "application/pdf")
+	w.Write(exam)
 }
 
 func generateExam(q repository.Queries,
 	exoParams repository.FindRandomExercisesByLessonNameWithLimitParams,
 	insertExamParams repository.InsertExamParams,
-	templateName string) (repository.Exam, error) {
+	templateName string) ([]byte, error) {
 	examExercises, err := q.FindRandomExercisesByLessonNameWithLimit(context.TODO(), exoParams)
 	if err != nil {
 		log.Error("Errors occured", err)
-		return repository.Exam{}, err
+		return nil, err
 	}
 
 	template, err := q.FindTemplateByName(context.TODO(), templateName)
 	if err != nil {
 		log.Error("Errors occured", err)
-		return repository.Exam{}, err
+		return nil, err
 	}
 
 	insertExamParams.TemplateID = template.ID
@@ -123,9 +118,10 @@ func generateExam(q repository.Queries,
 	exam, err := q.InsertExam(context.TODO(), insertExamParams)
 	if err != nil {
 		log.Error("Errors occured", err)
-		return repository.Exam{}, err
+		return nil, err
 	}
 
+	var exercisesString string
 	for _, v := range examExercises {
 		err = q.InsertExamExercise(context.TODO(), repository.InsertExamExerciseParams{
 			ExamID:     exam.ID,
@@ -133,17 +129,35 @@ func generateExam(q repository.Queries,
 		})
 		if err != nil {
 			log.Error("Errors occured", err)
-			return repository.Exam{}, err
+			return nil, err
 		}
+
+		exoFile, err := utils.DownloadFromPocketBase(EXO_FILES, v.ExercisePath)
+		if err != nil {
+			log.Error("Errors occured", err)
+			return nil, err
+		}
+
+		exercisesString = exercisesString + string(exoFile) + "\n\n"
 	}
 
-	templateFile, err := utils.DownloadFromPocketBase(TEMPLATE, template.PbFileID, template.TemplateName)
+	templateFile, err := utils.DownloadFromPocketBase(TEMPLATE, template.PbFileID)
 	if err != nil {
 		log.Error("Errors occured", err)
-		return repository.Exam{}, err
+		return nil, err
 	}
 
-	log.Info(templateFile)
+	templateString := string(templateFile)
 
-	return exam, nil
+	result := strings.Replace(templateString, "{{EXERCISES}}", exercisesString, 1)
+
+	log.Info("LOS RESULTES", result)
+
+	resultPdf, err := gotypst.PDF([]byte(result))
+	if err != nil {
+		log.Error("Errors occured", err)
+		return nil, err
+	}
+
+	return resultPdf, nil
 }

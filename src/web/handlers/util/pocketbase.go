@@ -118,8 +118,14 @@ func GetRecordInfo(collectionName, id string) (ResponseBody, error) {
 	return responseBody, nil
 }
 
-func DownloadFromPocketBase(collectionName, id, fileName string) ([]byte, error) {
-	url := os.Getenv("PB_URL") + "files/" + collectionName + "/" + id + "/" + fileName
+func DownloadFromPocketBase(collectionName, id string) ([]byte, error) {
+	recordInfo, err := GetRecordInfo(collectionName, id)
+	if err != nil {
+		log.Info("Error:", err)
+		return nil, err
+	}
+
+	url := os.Getenv("PB_URL") + "files/" + collectionName + "/" + id + "/" + recordInfo.File
 	log.Info("accessing ... ", url)
 
 	resp, err := http.Get(url)
