@@ -27,3 +27,12 @@ WHERE
 
 -- name: FindExercisesByName :one
 SELECT * FROM exercises WHERE exercises.exercise_name = ? LIMIT 1;
+
+-- name: FindRandomExercisesByLessonNameWithLimit :many
+SELECT e.*
+FROM exercises e
+    LEFT JOIN lessons l ON e.lesson_id = l.id
+WHERE
+    l.lesson_name = ?
+ORDER BY RANDOM()
+LIMIT ?;

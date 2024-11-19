@@ -6,6 +6,7 @@ INSERT INTO
     exams (
         date_of_passing,
         exam_number,
-        professor_id
+        professor_id,
+        template_id
     )
-VALUES (?, ?, ?) RETURNING *;
+VALUES (?, ?, ?, ?) RETURNING *;

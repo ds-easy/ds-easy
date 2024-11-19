@@ -9,6 +9,25 @@ import (
 	"context"
 )
 
+const findTemplateByName = `-- name: FindTemplateByName :one
+SELECT id, created_at, updated_at, deleted_at, uploaded_by, pb_file_id, template_name FROM templates WHERE template_name = ? LIMIT 1
+`
+
+func (q *Queries) FindTemplateByName(ctx context.Context, templateName string) (Template, error) {
+	row := q.queryRow(ctx, q.findTemplateByNameStmt, findTemplateByName, templateName)
+	var i Template
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.UploadedBy,
+		&i.PbFileID,
+		&i.TemplateName,
+	)
+	return i, err
+}
+
 const findTemplates = `-- name: FindTemplates :many
 SELECT id, created_at, updated_at, deleted_at, uploaded_by, pb_file_id, template_name FROM templates
 `

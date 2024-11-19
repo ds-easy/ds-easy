@@ -31,3 +31,5 @@ main
 
 *.db
 pocketbase
+
+pb_data

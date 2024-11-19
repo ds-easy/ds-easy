@@ -7,9 +7,20 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"os"
 
+	_ "github.com/joho/godotenv/autoload"
 	log "github.com/sirupsen/logrus"
 )
+
+type ResponseBody struct {
+	CollectionID   string `json:"collectionId"`
+	CollectionName string `json:"collectionName"`
+	Created        string `json:"created"`
+	File           string `json:"file"`
+	ID             string `json:"id"`
+	Updated        string `json:"updated"`
+}
 
 func PBAddUser(u repository.AddUserParams, password string) (string, error) {
 	url := "http://127.0.0.1:8090/api/collections/users/records"
@@ -153,7 +164,7 @@ func PBUploadFile(file multipart.File, fileName, collection string) (string, err
 	}
 
 	// Create the POST request with the multipart form data
-	url := "http://127.0.0.1:8090/api/collections/" + collection + "/records"
+	url := os.Getenv("PB_URL") + "collections/" + collection + "/records"
 
 	log.Info("accessing ... ", url)
 
@@ -267,4 +278,53 @@ func PBCheckPassword(u repository.User, password string) (string, error) {
 
 	// Return the "id" from the response
 	return response.Token, nil
+}
+
+func GetRecordInfo(collectionName, id string) (ResponseBody, error) {
+	url := os.Getenv("PB_URL") + "collections/" + collectionName + "/records/" + id
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return ResponseBody{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ResponseBody{}, err
+	}
+
+	var responseBody ResponseBody
+	err = json.Unmarshal(body, &responseBody)
+	if err != nil {
+		return ResponseBody{}, err
+	}
+
+	return responseBody, nil
+}
+
+func DownloadFromPocketBase(collectionName, id string) ([]byte, error) {
+	recordInfo, err := GetRecordInfo(collectionName, id)
+	if err != nil {
+		log.Info("Error:", err)
+		return nil, err
+	}
+
+	url := os.Getenv("PB_URL") + "files/" + collectionName + "/" + id + "/" + recordInfo.File
+	log.Info("accessing ... ", url)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Info("Error:", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Info("Error:", err)
+		return nil, err
+	}
+
+	return body, nil
 }

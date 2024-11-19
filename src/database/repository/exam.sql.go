@@ -7,7 +7,7 @@ package repository
 
 import (
 	"context"
-	"database/sql"
+	"time"
 )
 
 const findExams = `-- name: FindExams :many
@@ -52,19 +52,26 @@ INSERT INTO
     exams (
         date_of_passing,
         exam_number,
-        professor_id
+        professor_id,
+        template_id
     )
-VALUES (?, ?, ?) RETURNING id, created_at, updated_at, deleted_at, date_of_passing, exam_number, professor_id, template_id, "foreign"
+VALUES (?, ?, ?, ?) RETURNING id, created_at, updated_at, deleted_at, date_of_passing, exam_number, professor_id, template_id, "foreign"
 `
 
 type InsertExamParams struct {
-	DateOfPassing sql.NullTime  `json:"date_of_passing"`
-	ExamNumber    sql.NullInt64 `json:"exam_number"`
-	ProfessorID   sql.NullInt64 `json:"professor_id"`
+	DateOfPassing time.Time `json:"date_of_passing"`
+	ExamNumber    int64     `json:"exam_number"`
+	ProfessorID   int64     `json:"professor_id"`
+	TemplateID    int64     `json:"template_id"`
 }
 
 func (q *Queries) InsertExam(ctx context.Context, arg InsertExamParams) (Exam, error) {
-	row := q.queryRow(ctx, q.insertExamStmt, insertExam, arg.DateOfPassing, arg.ExamNumber, arg.ProfessorID)
+	row := q.queryRow(ctx, q.insertExamStmt, insertExam,
+		arg.DateOfPassing,
+		arg.ExamNumber,
+		arg.ProfessorID,
+		arg.TemplateID,
+	)
 	var i Exam
 	err := row.Scan(
 		&i.ID,

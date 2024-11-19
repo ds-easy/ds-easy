@@ -15,5 +15,6 @@ require (
 
 require (
 	github.com/gorilla/securecookie v1.1.2 // indirect
+	github.com/francescoalemanno/gotypst v0.1.4 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 )
