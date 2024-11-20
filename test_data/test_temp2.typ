@@ -66,11 +66,12 @@
   body
 }
 
-// Function helper pour les questions
-#let question(number, points, content) = {
+// Function helper pour les questions avec numérotation automatique
+#let question(content) = {
+  counter(heading).step()
   block(width: 100%)[
     #set par(justify: true)
-    *Question #number (#points points)*
+    *Question #counter(heading).display()*
     #v(0.2cm)
     #content
     #v(0.5cm)
