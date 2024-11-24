@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 # Simple Makefile for a Go project
 
 # Build the application
