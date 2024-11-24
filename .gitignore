@@ -33,3 +33,5 @@ main
 pocketbase
 
 pb_data
+
+.venv/

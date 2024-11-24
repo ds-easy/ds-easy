@@ -127,7 +127,7 @@ func generateExam(q repository.Queries,
 		return nil, err
 	}
 
-	var exercisesString string
+	sb := strings.Builder{}
 	for _, v := range examExercises {
 		err = q.InsertExamExercise(context.TODO(), repository.InsertExamExerciseParams{
 			ExamID:     exam.ID,
@@ -144,7 +144,8 @@ func generateExam(q repository.Queries,
 			return nil, err
 		}
 
-		exercisesString = exercisesString + string(exoFile) + "\n\n"
+		_, _ = sb.Write(exoFile)
+		_, _ = sb.WriteString("\n\n")
 	}
 
 	templateFile, err := utils.DownloadFromPocketBase(TEMPLATE, template.PbFileID)
@@ -156,7 +157,7 @@ func generateExam(q repository.Queries,
 	templateString := string(templateFile)
 	templateString = replaceInfo(templateString, professor, exoParams.LessonName, insertExamParams)
 
-	result := strings.Replace(templateString, "{{EXERCISES}}", exercisesString, 1)
+	result := strings.Replace(templateString, "{{EXERCISES}}", sb.String(), 1)
 
 	log.Info("RESULT", result)
 
