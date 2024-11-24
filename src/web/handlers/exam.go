@@ -121,6 +121,12 @@ func generateExam(q repository.Queries,
 		return nil, err
 	}
 
+	professor, err := q.FindUserById(context.TODO(), insertExamParams.ProfessorID)
+	if err != nil {
+		log.Error("Errors occured", err)
+		return nil, err
+	}
+
 	var exercisesString string
 	for _, v := range examExercises {
 		err = q.InsertExamExercise(context.TODO(), repository.InsertExamExerciseParams{
@@ -148,10 +154,11 @@ func generateExam(q repository.Queries,
 	}
 
 	templateString := string(templateFile)
+	templateString = replaceInfo(templateString, professor, exoParams.LessonName, insertExamParams)
 
 	result := strings.Replace(templateString, "{{EXERCISES}}", exercisesString, 1)
 
-	log.Info("LOS RESULTES", result)
+	log.Info("RESULT", result)
 
 	resultPdf, err := gotypst.PDF([]byte(result))
 	if err != nil {
@@ -160,4 +167,15 @@ func generateExam(q repository.Queries,
 	}
 
 	return resultPdf, nil
+}
+
+func replaceInfo(template string, professor repository.User, lessonName string, insertExamParams repository.InsertExamParams) string {
+	result := strings.Replace(template, "{{lesson}}", lessonName, 1)
+	result = strings.Replace(result, "{{course}}", "", 1)
+	result = strings.Replace(result, "{{date}}", insertExamParams.DateOfPassing.Format("02/01/2006"), 1)
+	result = strings.Replace(result, "{{duration}}", "2 heures", 1)
+	result = strings.Replace(result, "{{prof_name}}", professor.FirstName+" "+professor.LastName, 1)
+	result = strings.Replace(result, "{{school_name}}", "", 1)
+
+	return result
 }

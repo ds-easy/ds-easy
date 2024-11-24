@@ -1,4 +1,4 @@
-  #question(10, 3)[
+  #question[
     Démontrez que pour tout réel $a > 0$ :
     $ integral_0^a x \dx = (a^2)/2 $
     
