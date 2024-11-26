@@ -1,27 +1,18 @@
 package web
 
-templ CreateExam() {
+templ CreateExam(lessons []string) {
 	@Base() {
 		<h1 class="mb-8 text-3xl font-bold">Create Exam</h1>
 		<div class="grid gap-8 md:grid-cols-2">
 			<div class="bg-white p-6 rounded-lg shadow-md">
-				<form class="space-y-6">
-					<div class="space-y-2">
-						<label for="class" class="block text-sm font-medium text-gray-700">Class</label>
-						<select id="class" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-							<option>Select a class</option>
-							<option>Class 1</option>
-							<option>Class 2</option>
-							<option>Class 3</option>
-						</select>
-					</div>
+				<form class="space-y-6" hx-post="/exams" hx-ext="json-enc">
 					<div class="space-y-2">
 						<label for="lesson" class="block text-sm font-medium text-gray-700">Lesson</label>
 						<select id="lesson" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
 							<option>Select a lesson</option>
-							<option>Lesson 1</option>
-							<option>Lesson 2</option>
-							<option>Lesson 3</option>
+							 for _, lesson := range lessons {
+								<option>{ lesson }</option>
+							}
 						</select>
 					</div>
 					<div class="space-y-2">

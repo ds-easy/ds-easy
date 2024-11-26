@@ -15,33 +15,19 @@ VALUES (
     );
 
 INSERT INTO
-    lessons (lesson_name, year, subject)
+    lessons (lesson_name)
 values (
-        'integration',
-        'terminale',
-        'maths'
+        'integration'
     );
 
 INSERT INTO
-    lessons (lesson_name, year, subject)
+    lessons (lesson_name)
 values (
-        'les reactions acido basiques',
-        'terminale',
-        'physics'
+        'derivation'
     );
 
 INSERT INTO
-    lessons (lesson_name, year, subject)
+    lessons (lesson_name)
 values (
-        'derivation',
-        'seconde',
-        'maths'
-    );
-
-INSERT INTO
-    lessons (lesson_name, year, subject)
-values (
-        'algebre vectoriel',
-        'premiere',
-        'maths'
+        'algebre vectoriel'
     );

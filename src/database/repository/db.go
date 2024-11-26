@@ -45,9 +45,6 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findExercisesByNameStmt, err = db.PrepareContext(ctx, findExercisesByName); err != nil {
 		return nil, fmt.Errorf("error preparing query FindExercisesByName: %w", err)
 	}
-	if q.findExercisesBySubjectStmt, err = db.PrepareContext(ctx, findExercisesBySubject); err != nil {
-		return nil, fmt.Errorf("error preparing query FindExercisesBySubject: %w", err)
-	}
 	if q.findLessonByNameStmt, err = db.PrepareContext(ctx, findLessonByName); err != nil {
 		return nil, fmt.Errorf("error preparing query FindLessonByName: %w", err)
 	}
@@ -125,11 +122,6 @@ func (q *Queries) Close() error {
 	if q.findExercisesByNameStmt != nil {
 		if cerr := q.findExercisesByNameStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findExercisesByNameStmt: %w", cerr)
-		}
-	}
-	if q.findExercisesBySubjectStmt != nil {
-		if cerr := q.findExercisesBySubjectStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing findExercisesBySubjectStmt: %w", cerr)
 		}
 	}
 	if q.findLessonByNameStmt != nil {
@@ -243,7 +235,6 @@ type Queries struct {
 	findExercisesStmt                            *sql.Stmt
 	findExercisesByLessonNameStmt                *sql.Stmt
 	findExercisesByNameStmt                      *sql.Stmt
-	findExercisesBySubjectStmt                   *sql.Stmt
 	findLessonByNameStmt                         *sql.Stmt
 	findLessonsStmt                              *sql.Stmt
 	findRandomExercisesByLessonNameWithLimitStmt *sql.Stmt
@@ -270,7 +261,6 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		findExercisesStmt:             q.findExercisesStmt,
 		findExercisesByLessonNameStmt: q.findExercisesByLessonNameStmt,
 		findExercisesByNameStmt:       q.findExercisesByNameStmt,
-		findExercisesBySubjectStmt:    q.findExercisesBySubjectStmt,
 		findLessonByNameStmt:          q.findLessonByNameStmt,
 		findLessonsStmt:               q.findLessonsStmt,
 		findRandomExercisesByLessonNameWithLimitStmt: q.findRandomExercisesByLessonNameWithLimitStmt,

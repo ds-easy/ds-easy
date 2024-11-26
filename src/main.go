@@ -105,9 +105,6 @@ func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 		templ.Handler(templates.Home()).ServeHTTP(w, r)
 	}).Methods("GET")
 
-	r.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
-		templ.Handler(templates.CreateExam()).ServeHTTP(w, r)
-	}).Methods("GET")
 	//r.HandleFunc("/dashboard", web.HelloWebHandler)
 
 	service := handlers.Service{
