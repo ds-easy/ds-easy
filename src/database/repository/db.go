@@ -30,6 +30,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findAllLessonNamesStmt, err = db.PrepareContext(ctx, findAllLessonNames); err != nil {
 		return nil, fmt.Errorf("error preparing query FindAllLessonNames: %w", err)
 	}
+	if q.findAllTemplateNamesStmt, err = db.PrepareContext(ctx, findAllTemplateNames); err != nil {
+		return nil, fmt.Errorf("error preparing query FindAllTemplateNames: %w", err)
+	}
 	if q.findAllUsersStmt, err = db.PrepareContext(ctx, findAllUsers); err != nil {
 		return nil, fmt.Errorf("error preparing query FindAllUsers: %w", err)
 	}
@@ -97,6 +100,11 @@ func (q *Queries) Close() error {
 	if q.findAllLessonNamesStmt != nil {
 		if cerr := q.findAllLessonNamesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findAllLessonNamesStmt: %w", cerr)
+		}
+	}
+	if q.findAllTemplateNamesStmt != nil {
+		if cerr := q.findAllTemplateNamesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findAllTemplateNamesStmt: %w", cerr)
 		}
 	}
 	if q.findAllUsersStmt != nil {
@@ -230,6 +238,7 @@ type Queries struct {
 	tx                                           *sql.Tx
 	addUserStmt                                  *sql.Stmt
 	findAllLessonNamesStmt                       *sql.Stmt
+	findAllTemplateNamesStmt                     *sql.Stmt
 	findAllUsersStmt                             *sql.Stmt
 	findExamsStmt                                *sql.Stmt
 	findExercisesStmt                            *sql.Stmt
@@ -256,6 +265,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		tx:                            tx,
 		addUserStmt:                   q.addUserStmt,
 		findAllLessonNamesStmt:        q.findAllLessonNamesStmt,
+		findAllTemplateNamesStmt:      q.findAllTemplateNamesStmt,
 		findAllUsersStmt:              q.findAllUsersStmt,
 		findExamsStmt:                 q.findExamsStmt,
 		findExercisesStmt:             q.findExercisesStmt,

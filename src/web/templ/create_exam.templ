@@ -1,28 +1,53 @@
 package web
 
-templ CreateExam(lessons []string) {
+templ CreateExam(lessons []string, templates []string) {
 	@Base() {
 		<h1 class="mb-8 text-3xl font-bold">Create Exam</h1>
 		<div class="grid gap-8 md:grid-cols-2">
 			<div class="bg-white p-6 rounded-lg shadow-md">
-				<form class="space-y-6" hx-post="/exams" hx-ext="json-enc">
+								<form class="space-y-6" hx-post="/exams" hx-encoding="json" hx-trigger="submit">
 					<div class="space-y-2">
-						<label for="lesson" class="block text-sm font-medium text-gray-700">Lesson</label>
-						<select id="lesson" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-							<option>Select a lesson</option>
-							 for _, lesson := range lessons {
-								<option>{ lesson }</option>
+						<label for="lesson_name" class="block text-sm font-medium text-gray-700">Lesson</label>
+						<select id="lesson_name" name="lesson_name" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+							<option value="">Select a lesson</option>
+							for _, lesson := range lessons {
+								<option value={lesson}>{ lesson }</option>
 							}
 						</select>
 					</div>
 					<div class="space-y-2">
-						<label for="exerciseCount" class="block text-sm font-medium text-gray-700">Number of exercises</label>
-						<input type="number" id="exerciseCount" name="exerciseCount" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+						<label for="template_name" class="block text-sm font-medium text-gray-700">Template</label>
+						<select id="template_name" name="template_name" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+							<option value="">Select a template</option>
+							for _, template := range templates {
+								<option value={template}>{ template }</option>
+							}
+						</select>
 					</div>
 					<div class="space-y-2">
-						<label for="examNumber" class="block text-sm font-medium text-gray-700">Exam number</label>
-						<input type="number" id="examNumber" name="examNumber" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+						<label for="limit" class="block text-sm font-medium text-gray-700">Number of exercises</label>
+						<input type="number" id="limit" name="limit" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
 					</div>
+					<div class="space-y-2">
+						<label for="exam_number" class="block text-sm font-medium text-gray-700">Exam number</label>
+						<input type="number" id="exam_number" name="exam_number" min="0" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+					</div>
+					<div class="space-y-2">
+						<label for="date_of_passing" class="block text-sm font-medium text-gray-700">Date of passing</label>
+						<input type="date" id="date_of_passing" name="date_of_passing" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+					</div>
+					<input type="hidden" name="professor_id" value="2" />
+										<script>
+  document.querySelector('form').addEventListener('htmx:configRequest', function(event) {
+    var formData = event.detail.parameters;
+    
+    // Convert date to ISO format
+    var date = document.getElementById('date_of_passing').value;
+    if (date) {
+      formData.date_of_passing = new Date(date + 'T00:00:00Z').toISOString();
+    }
+  });
+</script>
 					<button type="submit" class="w-full bg-[#004D40] text-white py-2 px-4 rounded-md hover:bg-[#004D40]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#004D40]">
 						Generate Exam
 					</button>
@@ -37,4 +62,3 @@ templ CreateExam(lessons []string) {
 		</div>
 	}
 }
-

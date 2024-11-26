@@ -4,7 +4,7 @@ import (
 	"context"
 	"ds-easy/src/database/repository"
 	utils "ds-easy/src/web/handlers/util"
-	templates "ds-easy/src/web/templ"
+	templateFiles "ds-easy/src/web/templ"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -29,7 +29,15 @@ func (s Service) getExamsHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
-	templ.Handler(templates.CreateExam(lessons)).ServeHTTP(w, r)
+
+	templates, err := s.Queries.FindAllTemplateNames(r.Context())
+	if err != nil {
+		log.Error("Errors occured ", err)
+		w.WriteHeader(500)
+		return
+	}
+
+	templ.Handler(templateFiles.CreateExam(lessons, templates)).ServeHTTP(w, r)
 }
 
 func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
