@@ -99,6 +99,18 @@ func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 		templ.Handler(templates.Home()).ServeHTTP(w, r)
 	}).Methods("GET")
 
+	r.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
+		templ.Handler(templates.AboutUs()).ServeHTTP(w, r)
+	}).Methods("GET")
+
+	r.HandleFunc("/how-to", func(w http.ResponseWriter, r *http.Request) {
+		templ.Handler(templates.HowTo()).ServeHTTP(w, r)
+	}).Methods("GET")
+
+	r.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
+		templ.Handler(templates.Upload()).ServeHTTP(w, r)
+	}).Methods("GET")
+
 	service := handlers.Service{
 		Queries: queries,
 		Mux:     r,
