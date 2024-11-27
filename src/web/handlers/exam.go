@@ -5,9 +5,11 @@ import (
 	"ds-easy/src/database/repository"
 	utils "ds-easy/src/web/handlers/util"
 	templateFiles "ds-easy/src/web/templ"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/a-h/templ"
 	gotypst "github.com/francescoalemanno/gotypst"
@@ -19,6 +21,7 @@ func (s Service) RegisterExamRoutes() {
 
 	s.Mux.HandleFunc(baseUrl, s.getExamsHandler).Methods("GET")
 	s.Mux.HandleFunc(baseUrl, s.generateExamHandler).Methods("POST")
+	s.Mux.HandleFunc(baseUrl+"/test", s.gentest).Methods("GET")
 
 }
 
@@ -38,6 +41,29 @@ func (s Service) getExamsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templ.Handler(templateFiles.CreateExam(lessons, templates)).ServeHTTP(w, r)
+}
+
+func (s Service) gentest(w http.ResponseWriter, r *http.Request) {
+	exoParams := repository.FindRandomExercisesByLessonNameWithLimitParams{
+		LessonName: "Trigonometrie",
+		Limit:      8,
+	}
+
+	insertParams := repository.InsertExamParams{
+		DateOfPassing: time.Now(),
+		ExamNumber:    2,
+		ProfessorID:   2,
+	}
+
+	exam, err := generateExam(s.Queries, exoParams, insertParams, "ELDS2")
+	if err != nil {
+		log.Error("Errors occured", err)
+		w.WriteHeader(500)
+		return
+	}
+
+	pdfBase64 := base64.RawStdEncoding.EncodeToString(exam)
+	templ.Handler(templateFiles.GeneratedExam(pdfBase64)).ServeHTTP(w, r)
 }
 
 func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
@@ -74,8 +100,8 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-type", "application/pdf")
-	w.Write(exam)
+	pdfBase64 := base64.RawStdEncoding.EncodeToString(exam)
+	templ.Handler(templateFiles.GeneratedExam(pdfBase64)).ServeHTTP(w, r)
 }
 
 func generateExam(q repository.Queries,
