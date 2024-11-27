@@ -1,9 +1,8 @@
--- Active: 1720732902098@@127.0.0.1@3306
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     pb_id TEXT UNIQUE NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at DATETIME,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
@@ -13,26 +12,16 @@ CREATE TABLE users (
 
 CREATE TABLE lessons (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at DATETIME,
-    lesson_name TEXT NOT NULL,
-    year TEXT NOT NULL CHECK (
-        year IN (
-            'premiere',
-            'seconde',
-            'terminale'
-        )
-    ),
-    subject TEXT NOT NULL CHECK (
-        subject IN ('maths', 'physics')
-    )
+    lesson_name TEXT NOT NULL
 );
 
 CREATE TABLE exercises (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at DATETIME,
     exercise_name TEXT UNIQUE NOT NULL,
     exercise_path TEXT UNIQUE NOT NULL,
@@ -64,8 +53,8 @@ CREATE TABLE exams_exercises (
 
 CREATE TABLE templates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
     deleted_at DATETIME,
     uploaded_by INTEGER NOT NULL,
     pb_file_id TEXT UNIQUE NOT NULL,

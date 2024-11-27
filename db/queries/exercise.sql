@@ -11,13 +11,6 @@ INSERT INTO
     )
 VALUES (?, ?, ?, ?) RETURNING *;
 
--- name: FindExercisesBySubject :many
-SELECT e.*
-FROM exercises e
-    LEFT JOIN lessons l ON e.lesson_id = l.id
-WHERE
-    l.subject = ?;
-
 -- name: FindExercisesByLessonName :many
 SELECT e.*
 FROM exercises e

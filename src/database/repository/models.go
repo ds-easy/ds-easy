@@ -28,8 +28,8 @@ type ExamsExercise struct {
 
 type Exercise struct {
 	ID           int64        `json:"id"`
-	CreatedAt    sql.NullTime `json:"created_at"`
-	UpdatedAt    sql.NullTime `json:"updated_at"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
 	DeletedAt    sql.NullTime `json:"deleted_at"`
 	ExerciseName string       `json:"exercise_name"`
 	ExercisePath string       `json:"exercise_path"`
@@ -39,18 +39,16 @@ type Exercise struct {
 
 type Lesson struct {
 	ID         int64        `json:"id"`
-	CreatedAt  sql.NullTime `json:"created_at"`
-	UpdatedAt  sql.NullTime `json:"updated_at"`
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
 	DeletedAt  sql.NullTime `json:"deleted_at"`
 	LessonName string       `json:"lesson_name"`
-	Year       string       `json:"year"`
-	Subject    string       `json:"subject"`
 }
 
 type Template struct {
 	ID           int64        `json:"id"`
-	CreatedAt    sql.NullTime `json:"created_at"`
-	UpdatedAt    sql.NullTime `json:"updated_at"`
+	CreatedAt    time.Time    `json:"created_at"`
+	UpdatedAt    time.Time    `json:"updated_at"`
 	DeletedAt    sql.NullTime `json:"deleted_at"`
 	UploadedBy   int64        `json:"uploaded_by"`
 	PbFileID     string       `json:"pb_file_id"`
@@ -60,8 +58,8 @@ type Template struct {
 type User struct {
 	ID        int64        `json:"id"`
 	PbID      string       `json:"pb_id"`
-	CreatedAt sql.NullTime `json:"created_at"`
-	UpdatedAt sql.NullTime `json:"updated_at"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
 	DeletedAt sql.NullTime `json:"deleted_at"`
 	FirstName string       `json:"first_name"`
 	LastName  string       `json:"last_name"`

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"ds-easy/src/database/repository"
 	"encoding/json"
 	"net/http"
 
@@ -34,12 +33,14 @@ func (s Service) getLessonsHandler(w http.ResponseWriter, r *http.Request) {
 func (s Service) AddLessonHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("AddLessonHandler")
 	decoder := json.NewDecoder(r.Body)
-	var payload repository.InsertLessonParams
+	payload := struct {
+		LessonName string `json:"lesson_name"`
+	}{}
 	err := decoder.Decode(&payload)
 	if err != nil {
 		log.Error("Errors occured", err)
 	}
-	createdLesson, err := s.Queries.InsertLesson(r.Context(), payload)
+	createdLesson, err := s.Queries.InsertLesson(r.Context(), payload.LessonName)
 	if err != nil {
 		log.Error("Errors occured", err)
 	}

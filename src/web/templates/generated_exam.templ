@@ -1,0 +1,25 @@
+package web
+
+
+script test(){
+
+}
+
+templ GeneratedExam(pdfString string) {
+    @templ.JSONScript("id", pdfString)
+    <div id="pdf-viewer" class="w-full h-svh"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfobject/2.2.8/pdfobject.min.js" integrity="sha512-MoP2OErV7Mtk4VL893VYBFq8yJHWQtqJxTyIAsCVKzILrvHyKQpAwJf9noILczN6psvXUxTr19T5h+ndywCoVw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        // Use PDFObject to embed the PDF
+        let data = JSON.parse(document.getElementById('id').textContent);
+        let pdfBase64 = "data:application/pdf;base64," + data;
+        PDFObject.embed(pdfBase64, "#pdf-viewer", {
+            height: "800px",
+            pdfOpenParams: {
+                view: "FitV",
+                page: "1"
+            }
+        });
+    </script>
+}
+
