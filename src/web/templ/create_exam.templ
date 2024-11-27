@@ -5,7 +5,7 @@ templ CreateExam(lessons []string, templates []string) {
 		<h1 class="mb-8 text-3xl font-bold">Create Exam</h1>
 		<div class="grid gap-8 md:grid-cols-2">
 			<div class="bg-white p-6 rounded-lg shadow-md">
-								<form class="space-y-6" hx-post="/exams" hx-encoding="json" hx-trigger="submit">
+								<form class="space-y-6" hx-post="/exams" hx-trigger="submit" hx-ext="submitjson">
 					<div class="space-y-2">
 						<label for="lesson_name" class="block text-sm font-medium text-gray-700">Lesson</label>
 						<select id="lesson_name" name="lesson_name" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
@@ -37,17 +37,6 @@ templ CreateExam(lessons []string, templates []string) {
 						<input type="date" id="date_of_passing" name="date_of_passing" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
 					</div>
 					<input type="hidden" name="professor_id" value="2" />
-										<script>
-  document.querySelector('form').addEventListener('htmx:configRequest', function(event) {
-    var formData = event.detail.parameters;
-    
-    // Convert date to ISO format
-    var date = document.getElementById('date_of_passing').value;
-    if (date) {
-      formData.date_of_passing = new Date(date + 'T00:00:00Z').toISOString();
-    }
-  });
-</script>
 					<button type="submit" class="w-full bg-[#004D40] text-white py-2 px-4 rounded-md hover:bg-[#004D40]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#004D40]">
 						Generate Exam
 					</button>
@@ -61,4 +50,25 @@ templ CreateExam(lessons []string, templates []string) {
 			</div>
 		</div>
 	}
+					<script>
+						htmx.defineExtension('submitjson', {
+							onEvent: function (name, evt) {
+							if (name === "htmx:configRequest") {
+								evt.detail.headers['Content-Type'] = "application/json"
+							}
+							},
+							encodeParameters: function(xhr, parameters, elt) {
+								xhr.overrideMimeType('text/json')
+								const body = {
+									date_of_passing: new Date(parameters.date_of_passing + 'T00:00:00Z').toISOString(),
+									lesson_name: parameters.lesson_name,
+									template_name: parameters.template_name,
+									exam_number: parseInt(parameters.exam_number),
+									limit: parseInt(parameters.limit),
+									professor_id: parseInt(parameters.professor_id),
+								};
+								return (JSON.stringify(body))
+							}
+						})
+						</script>
 }
