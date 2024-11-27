@@ -2,5 +2,5 @@ package web
 
 import "embed"
 
-//go:embed "assets"
+//go:embed "templates/assets"
 var Files embed.FS

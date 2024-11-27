@@ -4,7 +4,7 @@ import (
 	"context"
 	"ds-easy/src/database/repository"
 	utils "ds-easy/src/web/handlers/util"
-	templates "ds-easy/src/web/templ"
+	templates "ds-easy/src/web/templates"
 	"encoding/json"
 	"errors"
 	"net/http"
