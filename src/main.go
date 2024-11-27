@@ -5,7 +5,7 @@ import (
 	"ds-easy/src/database/repository"
 	"ds-easy/src/web"
 	handlers "ds-easy/src/web/handlers"
-	templates "ds-easy/src/web/templ"
+	templates "ds-easy/src/web/templates"
 	"encoding/json"
 
 	"fmt"
@@ -92,20 +92,12 @@ func main() {
 func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 	r := mux.NewRouter()
 
-	//r.HandleFunc("/", s.HelloWorldHandler)
-
 	fileServer := http.FileServer(http.FS(web.Files))
 	r.PathPrefix("/assets/").Handler(fileServer)
-
-	r.HandleFunc("/web", func(w http.ResponseWriter, r *http.Request) {
-		//templ.Handler(web.HelloForm()).ServeHTTP(w, r)
-	})
 
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		templ.Handler(templates.Home()).ServeHTTP(w, r)
 	}).Methods("GET")
-
-	//r.HandleFunc("/dashboard", web.HelloWebHandler)
 
 	service := handlers.Service{
 		Queries: queries,
