@@ -37,7 +37,7 @@ func (q *Queries) FindAllLessonNames(ctx context.Context) ([]string, error) {
 }
 
 const findLessonByName = `-- name: FindLessonByName :one
-SELECT id, created_at, updated_at, deleted_at, lesson_name, year, subject FROM lessons WHERE lessons.lesson_name = ? LIMIT 1
+SELECT id, created_at, updated_at, deleted_at, lesson_name FROM lessons WHERE lessons.lesson_name = ? LIMIT 1
 `
 
 func (q *Queries) FindLessonByName(ctx context.Context, lessonName string) (Lesson, error) {
@@ -49,14 +49,12 @@ func (q *Queries) FindLessonByName(ctx context.Context, lessonName string) (Less
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.LessonName,
-		&i.Year,
-		&i.Subject,
 	)
 	return i, err
 }
 
 const findLessons = `-- name: FindLessons :many
-SELECT id, created_at, updated_at, deleted_at, lesson_name, year, subject FROM lessons
+SELECT id, created_at, updated_at, deleted_at, lesson_name FROM lessons
 `
 
 func (q *Queries) FindLessons(ctx context.Context) ([]Lesson, error) {
@@ -74,8 +72,6 @@ func (q *Queries) FindLessons(ctx context.Context) ([]Lesson, error) {
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.LessonName,
-			&i.Year,
-			&i.Subject,
 		); err != nil {
 			return nil, err
 		}
@@ -92,18 +88,12 @@ func (q *Queries) FindLessons(ctx context.Context) ([]Lesson, error) {
 
 const insertLesson = `-- name: InsertLesson :one
 INSERT INTO
-    lessons (lesson_name, year, subject)
-VALUES (?, ?, ?) RETURNING id, created_at, updated_at, deleted_at, lesson_name, year, subject
+    lessons (lesson_name)
+VALUES (?) RETURNING id, created_at, updated_at, deleted_at, lesson_name
 `
 
-type InsertLessonParams struct {
-	LessonName string `json:"lesson_name"`
-	Year       string `json:"year"`
-	Subject    string `json:"subject"`
-}
-
-func (q *Queries) InsertLesson(ctx context.Context, arg InsertLessonParams) (Lesson, error) {
-	row := q.queryRow(ctx, q.insertLessonStmt, insertLesson, arg.LessonName, arg.Year, arg.Subject)
+func (q *Queries) InsertLesson(ctx context.Context, lessonName string) (Lesson, error) {
+	row := q.queryRow(ctx, q.insertLessonStmt, insertLesson, lessonName)
 	var i Lesson
 	err := row.Scan(
 		&i.ID,
@@ -111,8 +101,6 @@ func (q *Queries) InsertLesson(ctx context.Context, arg InsertLessonParams) (Les
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.LessonName,
-		&i.Year,
-		&i.Subject,
 	)
 	return i, err
 }

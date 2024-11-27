@@ -105,46 +105,6 @@ func (q *Queries) FindExercisesByName(ctx context.Context, exerciseName string) 
 	return i, err
 }
 
-const findExercisesBySubject = `-- name: FindExercisesBySubject :many
-SELECT e.id, e.created_at, e.updated_at, e.deleted_at, e.exercise_name, e.exercise_path, e.lesson_id, e.uploaded_by
-FROM exercises e
-    LEFT JOIN lessons l ON e.lesson_id = l.id
-WHERE
-    l.subject = ?
-`
-
-func (q *Queries) FindExercisesBySubject(ctx context.Context, subject string) ([]Exercise, error) {
-	rows, err := q.query(ctx, q.findExercisesBySubjectStmt, findExercisesBySubject, subject)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Exercise
-	for rows.Next() {
-		var i Exercise
-		if err := rows.Scan(
-			&i.ID,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.DeletedAt,
-			&i.ExerciseName,
-			&i.ExercisePath,
-			&i.LessonID,
-			&i.UploadedBy,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const findRandomExercisesByLessonNameWithLimit = `-- name: FindRandomExercisesByLessonNameWithLimit :many
 SELECT e.id, e.created_at, e.updated_at, e.deleted_at, e.exercise_name, e.exercise_path, e.lesson_id, e.uploaded_by
 FROM exercises e

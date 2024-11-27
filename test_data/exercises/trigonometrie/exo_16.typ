@@ -1,4 +1,3 @@
-
 #question[
     Résoudre le système suivant :
     $cases(
