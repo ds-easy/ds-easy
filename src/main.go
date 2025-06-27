@@ -3,7 +3,6 @@ package main
 import (
 	"ds-easy/src/database"
 	"ds-easy/src/database/repository"
-	"ds-easy/src/web"
 	handlers "ds-easy/src/web/handlers"
 	"encoding/json"
 
@@ -90,8 +89,6 @@ func main() {
 func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 	r := mux.NewRouter()
 
-	fileServer := http.FileServer(http.FS(web.Files))
-	r.PathPrefix("/assets/").Handler(fileServer)
 
 	service := handlers.Service{
 		Queries: queries,
