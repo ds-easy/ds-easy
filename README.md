@@ -3,6 +3,15 @@
 
 ## Getting Started
 
+### Install dependencies
+
+to install tailwind : https://tailwindcss.com/blog/standalone-cli
+
+to install go-migrate : https://github.com/golang-migrate/migrate/tree/master/cmd/migrate
+
+to install sqlc : https://docs.sqlc.dev/en/latest/overview/install.html
+
+
 
 Make `.env` file like following :
 

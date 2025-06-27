@@ -30,10 +30,12 @@ func PBAddUser(u repository.AddUserParams, password string) (string, error) {
 		Email           string `json:"email"`
 		Password        string `json:"password"`
 		PasswordConfirm string `json:"passwordConfirm"`
+		Name            string `json:"name,omitempty"`
 	}{
 		Email:           u.Email,
 		Password:        password,
 		PasswordConfirm: password,
+		Name:            u.FirstName + " " + u.LastName,
 	}
 
 	bodyJson, err := json.Marshal(user)
@@ -149,21 +151,18 @@ func PBUploadFile(file multipart.File, fileName, collection string) (string, err
 		return "", err
 	}
 
-	// Copy the file contents to the form field
 	_, err = io.Copy(part, file)
 	if err != nil {
 		log.Error("error copying file: ", err)
 		return "", err
 	}
 
-	// Close the multipart writer to finalize the request
 	err = writer.Close()
 	if err != nil {
 		log.Error("error closing writer: ", err)
 		return "", err
 	}
 
-	// Create the POST request with the multipart form data
 	url := os.Getenv("PB_URL") + "collections/" + collection + "/records"
 
 	log.Info("accessing ... ", url)
@@ -174,10 +173,8 @@ func PBUploadFile(file multipart.File, fileName, collection string) (string, err
 		return "", err
 	}
 
-	// Set the content type for the multipart form data
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-	// Send the request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {

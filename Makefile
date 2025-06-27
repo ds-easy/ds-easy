@@ -6,7 +6,6 @@ all: build
 
 build:
 	@echo "Building..."
-	@templ generate
 	@go build -o tmp/main src/main.go
 
 # Run the application
