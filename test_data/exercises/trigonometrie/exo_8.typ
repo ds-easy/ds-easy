@@ -1,3 +1,1 @@
-#question[
 Déterminez le signe de $sin(x)$ dans l'intervalle $[frac(3pi,2), 2pi]$.
-]
