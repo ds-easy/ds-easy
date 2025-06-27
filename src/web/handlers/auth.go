@@ -4,13 +4,11 @@ import (
 	"context"
 	"ds-easy/src/database/repository"
 	utils "ds-easy/src/web/handlers/util"
-	templates "ds-easy/src/web/templates"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
 
-	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	log "github.com/sirupsen/logrus"
 )
@@ -80,7 +78,6 @@ func (s Service) login(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "GET" {
 		log.Println("Request to GET /login")
-		templ.Handler(templates.LoginPage()).ServeHTTP(w, r)
 		return
 	}
 	if r.Method == "POST" {

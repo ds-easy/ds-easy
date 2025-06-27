@@ -5,7 +5,6 @@ import (
 	"ds-easy/src/database/repository"
 	"ds-easy/src/web"
 	handlers "ds-easy/src/web/handlers"
-	templates "ds-easy/src/web/templates"
 	"encoding/json"
 
 	"fmt"
@@ -16,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/gorilla/mux"
 	_ "github.com/joho/godotenv/autoload"
 	log "github.com/sirupsen/logrus"
@@ -94,22 +92,6 @@ func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 
 	fileServer := http.FileServer(http.FS(web.Files))
 	r.PathPrefix("/assets/").Handler(fileServer)
-
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		templ.Handler(templates.Home()).ServeHTTP(w, r)
-	}).Methods("GET")
-
-	r.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
-		templ.Handler(templates.AboutUs()).ServeHTTP(w, r)
-	}).Methods("GET")
-
-	r.HandleFunc("/how-to", func(w http.ResponseWriter, r *http.Request) {
-		templ.Handler(templates.HowTo()).ServeHTTP(w, r)
-	}).Methods("GET")
-
-	r.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
-		templ.Handler(templates.Upload()).ServeHTTP(w, r)
-	}).Methods("GET")
 
 	service := handlers.Service{
 		Queries: queries,
