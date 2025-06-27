@@ -30,10 +30,12 @@ func PBAddUser(u repository.AddUserParams, password string) (string, error) {
 		Email           string `json:"email"`
 		Password        string `json:"password"`
 		PasswordConfirm string `json:"passwordConfirm"`
+		Name            string `json:"name,omitempty"`
 	}{
 		Email:           u.Email,
 		Password:        password,
 		PasswordConfirm: password,
+		Name:            u.FirstName + " " + u.LastName,
 	}
 
 	bodyJson, err := json.Marshal(user)
