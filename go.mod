@@ -1,6 +1,8 @@
 module ds-easy
 
-go 1.23.1
+go 1.23.0
+
+toolchain go1.24.4
 
 require (
 	github.com/francescoalemanno/gotypst v0.1.5

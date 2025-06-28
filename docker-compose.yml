@@ -1,5 +1,4 @@
 version: '3.9'
-
 services:
   app:
     build:
@@ -7,13 +6,33 @@ services:
       dockerfile: Dockerfile
     ports:
       - "${PORT:-8080}:8080"
-    volumes:
-      - .:/app
     env_file:
-      - .env
-    command: make watch
+      - .env.docker
     depends_on:
       - migrate
+      - pocketbase
+    volumes:
+      - .:/app
+    networks:
+      - app-network
+
+  pocketbase:
+    build:
+      context: .
+      dockerfile: Dockerfile.pb
+    container_name: pocketbase
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./pb_data:/pb/pb_data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
 
   migrate:
     build:
@@ -21,5 +40,12 @@ services:
       dockerfile: Dockerfile.migrate
     volumes:
       - .:/app
-    working_dir: /app
-    entrypoint: ["make", "migrate"]
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
