@@ -35,6 +35,7 @@ type Exercise struct {
 	ExercisePath string       `json:"exercise_path"`
 	LessonID     int64        `json:"lesson_id"`
 	UploadedBy   int64        `json:"uploaded_by"`
+	IsPublic     bool         `json:"is_public"`
 }
 
 type Lesson struct {
