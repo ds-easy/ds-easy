@@ -104,9 +104,11 @@ func generateExam(q repository.Queries,
 		log.Error("Errors occured ", err)
 		return nil, err
 	}
+	log.Info("exercises: ", examExercises)
 
 	sb := strings.Builder{}
 	for _, v := range examExercises {
+		log.Info("Exercise: ", v)
 		err = q.InsertExamExercise(context.TODO(), repository.InsertExamExerciseParams{
 			ExamID:     exam.ID,
 			ExerciseID: v.ID,
@@ -138,8 +140,6 @@ func generateExam(q repository.Queries,
 	templateString = replaceInfo(templateString, professor, exoParams.LessonName, insertExamParams)
 
 	result := strings.Replace(templateString, "{{EXERCISES}}", sb.String(), 1)
-
-	log.Info("RESULT", result)
 
 	resultPdf, err := gotypst.PDF([]byte(result))
 	if err != nil {

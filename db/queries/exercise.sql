@@ -58,6 +58,6 @@ FROM exercises e
     LEFT JOIN lessons l ON e.lesson_id = l.id
 WHERE
     l.lesson_name = ?
-    AND (e.is_public = true OR (? IS NOT NULL AND e.uploaded_by = ?))
+    AND (e.is_public = true OR e.uploaded_by = ?)
 ORDER BY RANDOM()
 LIMIT ?;
