@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"ds-easy/src/database/repository"
 	utils "ds-easy/src/web/handlers/util"
 	"encoding/json"
@@ -18,6 +19,7 @@ func (s Service) registerExerciseRoutes() {
 	s.Mux.HandleFunc(baseUrl, s.getExercisesHandler).Methods("GET")
 	s.Mux.HandleFunc(baseUrl, s.addExerciseHandler).Methods("POST")
 	s.Mux.HandleFunc(baseUrl+"/public", s.getPublicExercisesHandler).Methods("GET")
+	s.Mux.HandleFunc(baseUrl+"/accessible", s.getAccessibleExercisesHandler).Methods("GET")
 }
 
 func (s Service) getExercisesHandler(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +53,19 @@ func (s Service) getPublicExercisesHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.Write(jsonResp)
+}
+
+func (s Service) getAccessibleExercisesHandler(w http.ResponseWriter, r *http.Request) {
+	userID := s.getUserIDFromQuery(r).Int64
+
+	exercises, err := s.Queries.FindAccessibleExercises(r.Context(), userID)
+	if err != nil {
+		log.Error("Error finding accessible exercises: ", err)
+		http.Error(w, "Failed to fetch exercises", http.StatusInternalServerError)
+		return
+	}
+
+	s.writeJSONResponse(w, exercises)
 }
 
 func (s Service) addExerciseHandler(w http.ResponseWriter, r *http.Request) {
@@ -125,4 +140,31 @@ func (s Service) insertExercise(file multipart.File, exerciseName, lessonName, u
 		return repository.Exercise{}, err
 	}
 	return InsertedExercise, nil
+}
+
+// /////////// HELPER FUNCTIONS //////////////
+func (s Service) getUserIDFromQuery(r *http.Request) sql.NullInt64 {
+	userIDStr := r.URL.Query().Get("uploaded_by")
+	if userIDStr == "" {
+		return sql.NullInt64{Valid: false}
+	}
+
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
+	if err != nil {
+		return sql.NullInt64{Valid: false}
+	}
+
+	return sql.NullInt64{Int64: userID, Valid: true}
+}
+
+func (s Service) writeJSONResponse(w http.ResponseWriter, data interface{}) {
+	jsonResp, err := json.Marshal(data)
+	if err != nil {
+		log.Error("Error marshaling JSON: ", err)
+		http.Error(w, "Failed to create response", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResp)
 }

@@ -4,6 +4,13 @@ SELECT * FROM exercises;
 -- name: FindPublicExercises :many
 SELECT * FROM exercises WHERE is_public = true;
 
+-- name: FindAccessibleExercises :many
+SELECT *
+FROM exercises e
+WHERE
+  e.is_public = true OR e.uploaded_by = ?;
+
+
 -- name: InsertExercise :one
 INSERT INTO
     exercises (
@@ -15,12 +22,11 @@ INSERT INTO
     )
 VALUES (?, ?, ?, ?, ?) RETURNING *;
 
--- name: FindExercisesByLessonName :many
-SELECT e.*
-FROM exercises e
-    LEFT JOIN lessons l ON e.lesson_id = l.id
-WHERE
-    l.lesson_name = ?;
+-- name: FindExercisesByName :one
+SELECT * FROM exercises WHERE exercises.exercise_name = ? LIMIT 1;
+
+-- name: FindPublicExercisesByName :one
+SELECT * FROM exercises WHERE exercises.exercise_name = ? AND is_public = true LIMIT 1;
 
 -- name: FindPublicExercisesByLessonName :many
 SELECT e.*
@@ -29,17 +35,13 @@ FROM exercises e
 WHERE
     l.lesson_name = ? AND e.is_public = true;
 
--- name: FindExercisesByName :one
-SELECT * FROM exercises WHERE exercises.exercise_name = ? LIMIT 1;
-
--- name: FindRandomExercisesByLessonNameWithLimit :many
+-- name: FindAccessibleExercisesByLessonName :many
 SELECT e.*
 FROM exercises e
     LEFT JOIN lessons l ON e.lesson_id = l.id
 WHERE
     l.lesson_name = ?
-ORDER BY RANDOM()
-LIMIT ?;
+    AND (e.is_public = true OR (? IS NOT NULL AND e.uploaded_by = ?));
 
 -- name: FindRandomPublicExercisesByLessonNameWithLimit :many
 SELECT e.*
@@ -47,5 +49,15 @@ FROM exercises e
     LEFT JOIN lessons l ON e.lesson_id = l.id
 WHERE
     l.lesson_name = ? AND e.is_public = true
+ORDER BY RANDOM()
+LIMIT ?;
+
+-- name: FindRandomAccessibleExercisesByLessonNameWithLimit :many
+SELECT e.*
+FROM exercises e
+    LEFT JOIN lessons l ON e.lesson_id = l.id
+WHERE
+    l.lesson_name = ?
+    AND (e.is_public = true OR (? IS NOT NULL AND e.uploaded_by = ?))
 ORDER BY RANDOM()
 LIMIT ?;

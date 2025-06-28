@@ -9,12 +9,15 @@ import (
 	"context"
 )
 
-const findExercises = `-- name: FindExercises :many
-SELECT id, created_at, updated_at, deleted_at, exercise_name, exercise_path, lesson_id, uploaded_by, is_public FROM exercises
+const findAccessibleExercises = `-- name: FindAccessibleExercises :many
+SELECT id, created_at, updated_at, deleted_at, exercise_name, exercise_path, lesson_id, uploaded_by, is_public
+FROM exercises e
+WHERE
+  e.is_public = true OR e.uploaded_by = ?
 `
 
-func (q *Queries) FindExercises(ctx context.Context) ([]Exercise, error) {
-	rows, err := q.query(ctx, q.findExercisesStmt, findExercises)
+func (q *Queries) FindAccessibleExercises(ctx context.Context, uploadedBy int64) ([]Exercise, error) {
+	rows, err := q.query(ctx, q.findAccessibleExercisesStmt, findAccessibleExercises, uploadedBy)
 	if err != nil {
 		return nil, err
 	}
@@ -46,16 +49,60 @@ func (q *Queries) FindExercises(ctx context.Context) ([]Exercise, error) {
 	return items, nil
 }
 
-const findExercisesByLessonName = `-- name: FindExercisesByLessonName :many
+const findAccessibleExercisesByLessonName = `-- name: FindAccessibleExercisesByLessonName :many
 SELECT e.id, e.created_at, e.updated_at, e.deleted_at, e.exercise_name, e.exercise_path, e.lesson_id, e.uploaded_by, e.is_public
 FROM exercises e
     LEFT JOIN lessons l ON e.lesson_id = l.id
 WHERE
     l.lesson_name = ?
+    AND (e.is_public = true OR (? IS NOT NULL AND e.uploaded_by = ?))
 `
 
-func (q *Queries) FindExercisesByLessonName(ctx context.Context, lessonName string) ([]Exercise, error) {
-	rows, err := q.query(ctx, q.findExercisesByLessonNameStmt, findExercisesByLessonName, lessonName)
+type FindAccessibleExercisesByLessonNameParams struct {
+	LessonName string      `json:"lesson_name"`
+	Column2    interface{} `json:"column_2"`
+	UploadedBy int64       `json:"uploaded_by"`
+}
+
+func (q *Queries) FindAccessibleExercisesByLessonName(ctx context.Context, arg FindAccessibleExercisesByLessonNameParams) ([]Exercise, error) {
+	rows, err := q.query(ctx, q.findAccessibleExercisesByLessonNameStmt, findAccessibleExercisesByLessonName, arg.LessonName, arg.Column2, arg.UploadedBy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Exercise
+	for rows.Next() {
+		var i Exercise
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.ExerciseName,
+			&i.ExercisePath,
+			&i.LessonID,
+			&i.UploadedBy,
+			&i.IsPublic,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const findExercises = `-- name: FindExercises :many
+SELECT id, created_at, updated_at, deleted_at, exercise_name, exercise_path, lesson_id, uploaded_by, is_public FROM exercises
+`
+
+func (q *Queries) FindExercises(ctx context.Context) ([]Exercise, error) {
+	rows, err := q.query(ctx, q.findExercisesStmt, findExercises)
 	if err != nil {
 		return nil, err
 	}
@@ -186,23 +233,52 @@ func (q *Queries) FindPublicExercisesByLessonName(ctx context.Context, lessonNam
 	return items, nil
 }
 
-const findRandomExercisesByLessonNameWithLimit = `-- name: FindRandomExercisesByLessonNameWithLimit :many
+const findPublicExercisesByName = `-- name: FindPublicExercisesByName :one
+SELECT id, created_at, updated_at, deleted_at, exercise_name, exercise_path, lesson_id, uploaded_by, is_public FROM exercises WHERE exercises.exercise_name = ? AND is_public = true LIMIT 1
+`
+
+func (q *Queries) FindPublicExercisesByName(ctx context.Context, exerciseName string) (Exercise, error) {
+	row := q.queryRow(ctx, q.findPublicExercisesByNameStmt, findPublicExercisesByName, exerciseName)
+	var i Exercise
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.ExerciseName,
+		&i.ExercisePath,
+		&i.LessonID,
+		&i.UploadedBy,
+		&i.IsPublic,
+	)
+	return i, err
+}
+
+const findRandomAccessibleExercisesByLessonNameWithLimit = `-- name: FindRandomAccessibleExercisesByLessonNameWithLimit :many
 SELECT e.id, e.created_at, e.updated_at, e.deleted_at, e.exercise_name, e.exercise_path, e.lesson_id, e.uploaded_by, e.is_public
 FROM exercises e
     LEFT JOIN lessons l ON e.lesson_id = l.id
 WHERE
     l.lesson_name = ?
+    AND (e.is_public = true OR (? IS NOT NULL AND e.uploaded_by = ?))
 ORDER BY RANDOM()
 LIMIT ?
 `
 
-type FindRandomExercisesByLessonNameWithLimitParams struct {
-	LessonName string `json:"lesson_name"`
-	Limit      int64  `json:"limit"`
+type FindRandomAccessibleExercisesByLessonNameWithLimitParams struct {
+	LessonName string      `json:"lesson_name"`
+	Column2    interface{} `json:"column_2"`
+	UploadedBy int64       `json:"uploaded_by"`
+	Limit      int64       `json:"limit"`
 }
 
-func (q *Queries) FindRandomExercisesByLessonNameWithLimit(ctx context.Context, arg FindRandomExercisesByLessonNameWithLimitParams) ([]Exercise, error) {
-	rows, err := q.query(ctx, q.findRandomExercisesByLessonNameWithLimitStmt, findRandomExercisesByLessonNameWithLimit, arg.LessonName, arg.Limit)
+func (q *Queries) FindRandomAccessibleExercisesByLessonNameWithLimit(ctx context.Context, arg FindRandomAccessibleExercisesByLessonNameWithLimitParams) ([]Exercise, error) {
+	rows, err := q.query(ctx, q.findRandomAccessibleExercisesByLessonNameWithLimitStmt, findRandomAccessibleExercisesByLessonNameWithLimit,
+		arg.LessonName,
+		arg.Column2,
+		arg.UploadedBy,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}
