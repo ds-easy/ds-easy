@@ -68,7 +68,7 @@ func (s Service) addExerciseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Error("Errors occured", err)
+		log.Error("Errors occured ", err)
 		w.WriteHeader(500)
 		return
 	}
@@ -76,7 +76,7 @@ func (s Service) addExerciseHandler(w http.ResponseWriter, r *http.Request) {
 
 	insertedExercise, err := s.insertExercise(file, exerciseName, lessonName, uploadedBy, isPublic)
 	if err != nil {
-		log.Error("Errors occured", err)
+		log.Error("Errors occured ", err)
 		w.WriteHeader(500)
 		return
 	}
@@ -84,7 +84,7 @@ func (s Service) addExerciseHandler(w http.ResponseWriter, r *http.Request) {
 	jsonResp, err := json.Marshal(insertedExercise)
 
 	if err != nil {
-		log.Error("Errors occured", err)
+		log.Error("Errors occured ", err)
 		w.WriteHeader(500)
 		return
 	}

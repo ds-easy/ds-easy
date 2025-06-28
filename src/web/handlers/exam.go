@@ -94,13 +94,13 @@ func generateExam(q repository.Queries,
 
 	exam, err := q.InsertExam(context.TODO(), insertExamParams)
 	if err != nil {
-		log.Error("Errors occured", err)
+		log.Error("Errors occured ", err)
 		return nil, err
 	}
 
 	professor, err := q.FindUserById(context.TODO(), insertExamParams.ProfessorID)
 	if err != nil {
-		log.Error("Errors occured", err)
+		log.Error("Errors occured ", err)
 		return nil, err
 	}
 
