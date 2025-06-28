@@ -4,7 +4,6 @@ import (
 	"context"
 	"ds-easy/src/database/repository"
 	utils "ds-easy/src/web/handlers/util"
-	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -70,16 +69,10 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", "attachment; filename=exam.pdf")
 
-	pdfBase64 := base64.RawStdEncoding.EncodeToString(exam)
-	jsonResp, err := json.Marshal(pdfBase64)
-	if err != nil {
-		log.Error("Errors occured", err)
-		w.WriteHeader(500)
-		return
-	}
-
-	w.Write(jsonResp)
+	w.Write(exam)
 }
 
 func generateExam(q repository.Queries,
