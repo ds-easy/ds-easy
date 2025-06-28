@@ -54,8 +54,17 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.findLessonsStmt, err = db.PrepareContext(ctx, findLessons); err != nil {
 		return nil, fmt.Errorf("error preparing query FindLessons: %w", err)
 	}
+	if q.findPublicExercisesStmt, err = db.PrepareContext(ctx, findPublicExercises); err != nil {
+		return nil, fmt.Errorf("error preparing query FindPublicExercises: %w", err)
+	}
+	if q.findPublicExercisesByLessonNameStmt, err = db.PrepareContext(ctx, findPublicExercisesByLessonName); err != nil {
+		return nil, fmt.Errorf("error preparing query FindPublicExercisesByLessonName: %w", err)
+	}
 	if q.findRandomExercisesByLessonNameWithLimitStmt, err = db.PrepareContext(ctx, findRandomExercisesByLessonNameWithLimit); err != nil {
 		return nil, fmt.Errorf("error preparing query FindRandomExercisesByLessonNameWithLimit: %w", err)
+	}
+	if q.findRandomPublicExercisesByLessonNameWithLimitStmt, err = db.PrepareContext(ctx, findRandomPublicExercisesByLessonNameWithLimit); err != nil {
+		return nil, fmt.Errorf("error preparing query FindRandomPublicExercisesByLessonNameWithLimit: %w", err)
 	}
 	if q.findTemplateByNameStmt, err = db.PrepareContext(ctx, findTemplateByName); err != nil {
 		return nil, fmt.Errorf("error preparing query FindTemplateByName: %w", err)
@@ -142,9 +151,24 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing findLessonsStmt: %w", cerr)
 		}
 	}
+	if q.findPublicExercisesStmt != nil {
+		if cerr := q.findPublicExercisesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findPublicExercisesStmt: %w", cerr)
+		}
+	}
+	if q.findPublicExercisesByLessonNameStmt != nil {
+		if cerr := q.findPublicExercisesByLessonNameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findPublicExercisesByLessonNameStmt: %w", cerr)
+		}
+	}
 	if q.findRandomExercisesByLessonNameWithLimitStmt != nil {
 		if cerr := q.findRandomExercisesByLessonNameWithLimitStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing findRandomExercisesByLessonNameWithLimitStmt: %w", cerr)
+		}
+	}
+	if q.findRandomPublicExercisesByLessonNameWithLimitStmt != nil {
+		if cerr := q.findRandomPublicExercisesByLessonNameWithLimitStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findRandomPublicExercisesByLessonNameWithLimitStmt: %w", cerr)
 		}
 	}
 	if q.findTemplateByNameStmt != nil {
@@ -234,55 +258,61 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                                           DBTX
-	tx                                           *sql.Tx
-	addUserStmt                                  *sql.Stmt
-	findAllLessonNamesStmt                       *sql.Stmt
-	findAllTemplateNamesStmt                     *sql.Stmt
-	findAllUsersStmt                             *sql.Stmt
-	findExamsStmt                                *sql.Stmt
-	findExercisesStmt                            *sql.Stmt
-	findExercisesByLessonNameStmt                *sql.Stmt
-	findExercisesByNameStmt                      *sql.Stmt
-	findLessonByNameStmt                         *sql.Stmt
-	findLessonsStmt                              *sql.Stmt
-	findRandomExercisesByLessonNameWithLimitStmt *sql.Stmt
-	findTemplateByNameStmt                       *sql.Stmt
-	findTemplatesStmt                            *sql.Stmt
-	findUserByEmailStmt                          *sql.Stmt
-	findUserByIdStmt                             *sql.Stmt
-	findUserByPBIdStmt                           *sql.Stmt
-	insertExamStmt                               *sql.Stmt
-	insertExamExerciseStmt                       *sql.Stmt
-	insertExerciseStmt                           *sql.Stmt
-	insertLessonStmt                             *sql.Stmt
-	insertTemplateStmt                           *sql.Stmt
+	db                                                 DBTX
+	tx                                                 *sql.Tx
+	addUserStmt                                        *sql.Stmt
+	findAllLessonNamesStmt                             *sql.Stmt
+	findAllTemplateNamesStmt                           *sql.Stmt
+	findAllUsersStmt                                   *sql.Stmt
+	findExamsStmt                                      *sql.Stmt
+	findExercisesStmt                                  *sql.Stmt
+	findExercisesByLessonNameStmt                      *sql.Stmt
+	findExercisesByNameStmt                            *sql.Stmt
+	findLessonByNameStmt                               *sql.Stmt
+	findLessonsStmt                                    *sql.Stmt
+	findPublicExercisesStmt                            *sql.Stmt
+	findPublicExercisesByLessonNameStmt                *sql.Stmt
+	findRandomExercisesByLessonNameWithLimitStmt       *sql.Stmt
+	findRandomPublicExercisesByLessonNameWithLimitStmt *sql.Stmt
+	findTemplateByNameStmt                             *sql.Stmt
+	findTemplatesStmt                                  *sql.Stmt
+	findUserByEmailStmt                                *sql.Stmt
+	findUserByIdStmt                                   *sql.Stmt
+	findUserByPBIdStmt                                 *sql.Stmt
+	insertExamStmt                                     *sql.Stmt
+	insertExamExerciseStmt                             *sql.Stmt
+	insertExerciseStmt                                 *sql.Stmt
+	insertLessonStmt                                   *sql.Stmt
+	insertTemplateStmt                                 *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                            tx,
-		tx:                            tx,
-		addUserStmt:                   q.addUserStmt,
-		findAllLessonNamesStmt:        q.findAllLessonNamesStmt,
-		findAllTemplateNamesStmt:      q.findAllTemplateNamesStmt,
-		findAllUsersStmt:              q.findAllUsersStmt,
-		findExamsStmt:                 q.findExamsStmt,
-		findExercisesStmt:             q.findExercisesStmt,
-		findExercisesByLessonNameStmt: q.findExercisesByLessonNameStmt,
-		findExercisesByNameStmt:       q.findExercisesByNameStmt,
-		findLessonByNameStmt:          q.findLessonByNameStmt,
-		findLessonsStmt:               q.findLessonsStmt,
-		findRandomExercisesByLessonNameWithLimitStmt: q.findRandomExercisesByLessonNameWithLimitStmt,
-		findTemplateByNameStmt:                       q.findTemplateByNameStmt,
-		findTemplatesStmt:                            q.findTemplatesStmt,
-		findUserByEmailStmt:                          q.findUserByEmailStmt,
-		findUserByIdStmt:                             q.findUserByIdStmt,
-		findUserByPBIdStmt:                           q.findUserByPBIdStmt,
-		insertExamStmt:                               q.insertExamStmt,
-		insertExamExerciseStmt:                       q.insertExamExerciseStmt,
-		insertExerciseStmt:                           q.insertExerciseStmt,
-		insertLessonStmt:                             q.insertLessonStmt,
-		insertTemplateStmt:                           q.insertTemplateStmt,
+		db:                                  tx,
+		tx:                                  tx,
+		addUserStmt:                         q.addUserStmt,
+		findAllLessonNamesStmt:              q.findAllLessonNamesStmt,
+		findAllTemplateNamesStmt:            q.findAllTemplateNamesStmt,
+		findAllUsersStmt:                    q.findAllUsersStmt,
+		findExamsStmt:                       q.findExamsStmt,
+		findExercisesStmt:                   q.findExercisesStmt,
+		findExercisesByLessonNameStmt:       q.findExercisesByLessonNameStmt,
+		findExercisesByNameStmt:             q.findExercisesByNameStmt,
+		findLessonByNameStmt:                q.findLessonByNameStmt,
+		findLessonsStmt:                     q.findLessonsStmt,
+		findPublicExercisesStmt:             q.findPublicExercisesStmt,
+		findPublicExercisesByLessonNameStmt: q.findPublicExercisesByLessonNameStmt,
+		findRandomExercisesByLessonNameWithLimitStmt:       q.findRandomExercisesByLessonNameWithLimitStmt,
+		findRandomPublicExercisesByLessonNameWithLimitStmt: q.findRandomPublicExercisesByLessonNameWithLimitStmt,
+		findTemplateByNameStmt:                             q.findTemplateByNameStmt,
+		findTemplatesStmt:                                  q.findTemplatesStmt,
+		findUserByEmailStmt:                                q.findUserByEmailStmt,
+		findUserByIdStmt:                                   q.findUserByIdStmt,
+		findUserByPBIdStmt:                                 q.findUserByPBIdStmt,
+		insertExamStmt:                                     q.insertExamStmt,
+		insertExamExerciseStmt:                             q.insertExamExerciseStmt,
+		insertExerciseStmt:                                 q.insertExerciseStmt,
+		insertLessonStmt:                                   q.insertLessonStmt,
+		insertTemplateStmt:                                 q.insertTemplateStmt,
 	}
 }

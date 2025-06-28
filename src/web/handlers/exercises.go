@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -16,6 +17,7 @@ func (s Service) registerExerciseRoutes() {
 
 	s.Mux.HandleFunc(baseUrl, s.getExercisesHandler).Methods("GET")
 	s.Mux.HandleFunc(baseUrl, s.addExerciseHandler).Methods("POST")
+	s.Mux.HandleFunc(baseUrl+"/public", s.getPublicExercisesHandler).Methods("GET")
 }
 
 func (s Service) getExercisesHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,11 +35,38 @@ func (s Service) getExercisesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
+func (s Service) getPublicExercisesHandler(w http.ResponseWriter, r *http.Request) {
+	exercises, err := s.Queries.FindPublicExercises(r.Context())
+	if err != nil {
+		log.Error("Errors occured", err)
+		w.WriteHeader(500)
+		return
+	}
+
+	jsonResp, err := json.Marshal(exercises)
+	if err != nil {
+		log.Error("Errors occured", err)
+		w.WriteHeader(500)
+		return
+	}
+
+	w.Write(jsonResp)
+}
+
 func (s Service) addExerciseHandler(w http.ResponseWriter, r *http.Request) {
 	file, _, err := r.FormFile("exo_file")
 	exerciseName := r.FormValue("exercise_name")
 	lessonName := r.FormValue("lesson_name")
 	uploadedBy := r.FormValue("uploadedBy")
+	isPublicStr := r.FormValue("is_public")
+
+	isPublic := false
+	if isPublicStr != "" {
+		if parsed, err := strconv.ParseBool(isPublicStr); err == nil {
+			isPublic = parsed
+		}
+	}
+
 	if err != nil {
 		log.Error("Errors occured", err)
 		w.WriteHeader(500)
@@ -45,7 +74,7 @@ func (s Service) addExerciseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	insertedExercise, err := s.insertExercise(file, exerciseName, lessonName, uploadedBy)
+	insertedExercise, err := s.insertExercise(file, exerciseName, lessonName, uploadedBy, isPublic)
 	if err != nil {
 		log.Error("Errors occured", err)
 		w.WriteHeader(500)
@@ -63,7 +92,7 @@ func (s Service) addExerciseHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResp)
 }
 
-func (s Service) insertExercise(file multipart.File, exerciseName, lessonName, uploadedBy string) (repository.Exercise, error) {
+func (s Service) insertExercise(file multipart.File, exerciseName, lessonName, uploadedBy string, isPublic bool) (repository.Exercise, error) {
 	pb_id, err := utils.PBUploadFile(file, exerciseName, EXO_FILES)
 	if err != nil {
 		log.Error("Errors occured ", err)
@@ -87,6 +116,7 @@ func (s Service) insertExercise(file multipart.File, exerciseName, lessonName, u
 		ExercisePath: pb_id,
 		LessonID:     lesson.ID,
 		UploadedBy:   user.ID,
+		IsPublic:     isPublic,
 	}
 
 	InsertedExercise, err := s.Queries.InsertExercise(context.TODO(), payload)

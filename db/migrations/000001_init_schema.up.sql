@@ -27,6 +27,7 @@ CREATE TABLE exercises (
     exercise_path TEXT UNIQUE NOT NULL,
     lesson_id INTEGER NOT NULL,
     uploaded_by INTEGER NOT NULL,
+    is_public BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (lesson_id) REFERENCES lessons (id),
     FOREIGN KEY (uploaded_by) REFERENCES users (id)
 );

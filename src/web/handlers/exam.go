@@ -41,7 +41,7 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	payload := struct {
-		repository.FindRandomExercisesByLessonNameWithLimitParams
+		repository.FindRandomPublicExercisesByLessonNameWithLimitParams
 		repository.InsertExamParams
 		TemplateName string `json:"template_name"`
 	}{}
@@ -52,7 +52,7 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exoParams := repository.FindRandomExercisesByLessonNameWithLimitParams{
+	exoParams := repository.FindRandomPublicExercisesByLessonNameWithLimitParams{
 		LessonName: payload.LessonName,
 		Limit:      payload.Limit,
 	}
@@ -75,10 +75,10 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func generateExam(q repository.Queries,
-	exoParams repository.FindRandomExercisesByLessonNameWithLimitParams,
+	exoParams repository.FindRandomPublicExercisesByLessonNameWithLimitParams,
 	insertExamParams repository.InsertExamParams,
 	templateName string) ([]byte, error) {
-	examExercises, err := q.FindRandomExercisesByLessonNameWithLimit(context.TODO(), exoParams)
+	examExercises, err := q.FindRandomPublicExercisesByLessonNameWithLimit(context.TODO(), exoParams)
 	if err != nil {
 		log.Error("Errors occured", err)
 		return nil, err
