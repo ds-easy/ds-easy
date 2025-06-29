@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	_ "github.com/joho/godotenv/autoload"
 	log "github.com/sirupsen/logrus"
 )
@@ -36,7 +37,13 @@ func NewServer() *http.Server {
 	// Declare Server config
 	server := &http.Server{
 		Addr:         fmt.Sprintf("localhost:%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(*queries),
+		Handler:      cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowedHeaders: []string{"*"},
+		AllowCredentials: true,
+		Debug:           os.Getenv("ENV") == "development",
+	}).Handler(NewServer.RegisterRoutes(*queries)),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
