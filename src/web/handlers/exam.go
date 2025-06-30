@@ -85,6 +85,7 @@ func generateExamFromMultipleLessons(q repository.Queries,
 	for _, lesson := range lessons {
 		exoParams := repository.FindRandomAccessibleExercisesByLessonNameWithLimitParams{
 			LessonName: lesson.LessonName,
+			UploadedBy: insertExamParams.ProfessorID,
 			Limit:      lesson.Limit,
 		}
 
