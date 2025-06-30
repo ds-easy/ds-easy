@@ -12,6 +12,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type LessonRequest struct {
+	LessonName string `json:"lesson_name"`
+	Limit      int64  `json:"limit"`
+}
+
 func (s Service) RegisterExamRoutes() {
 	baseUrl := "/exams"
 
@@ -41,7 +46,7 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 	payload := struct {
-		repository.FindRandomAccessibleExercisesByLessonNameWithLimitParams
+		Lessons []LessonRequest `json:"lessons"`
 		repository.InsertExamParams
 		TemplateName string `json:"template_name"`
 	}{}
@@ -52,18 +57,13 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exoParams := repository.FindRandomAccessibleExercisesByLessonNameWithLimitParams{
-		LessonName: payload.LessonName,
-		Limit:      payload.Limit,
-	}
-
 	insertParams := repository.InsertExamParams{
 		DateOfPassing: payload.DateOfPassing,
 		ExamNumber:    payload.ExamNumber,
 		ProfessorID:   payload.ProfessorID,
 	}
 
-	exam, err := generateExam(s.Queries, exoParams, insertParams, payload.TemplateName)
+	exam, err := generateExamFromMultipleLessons(s.Queries, payload.Lessons, insertParams, payload.TemplateName)
 	if err != nil {
 		log.Error("Errors occured", err)
 		w.WriteHeader(500)
@@ -74,14 +74,28 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(exam)
 }
 
-func generateExam(q repository.Queries,
-	exoParams repository.FindRandomAccessibleExercisesByLessonNameWithLimitParams,
+func generateExamFromMultipleLessons(q repository.Queries,
+	lessons []LessonRequest,
 	insertExamParams repository.InsertExamParams,
 	templateName string) ([]byte, error) {
-	examExercises, err := q.FindRandomAccessibleExercisesByLessonNameWithLimit(context.TODO(), exoParams)
-	if err != nil {
-		log.Error("Errors occured", err)
-		return nil, err
+
+	var allExercises []repository.Exercise
+	var lessonNames []string
+
+	for _, lesson := range lessons {
+		exoParams := repository.FindRandomAccessibleExercisesByLessonNameWithLimitParams{
+			LessonName: lesson.LessonName,
+			Limit:      lesson.Limit,
+		}
+
+		examExercises, err := q.FindRandomAccessibleExercisesByLessonNameWithLimit(context.TODO(), exoParams)
+		if err != nil {
+			log.Error("Errors occured", err)
+			return nil, err
+		}
+
+		allExercises = append(allExercises, examExercises...)
+		lessonNames = append(lessonNames, lesson.LessonName)
 	}
 
 	template, err := q.FindTemplateByName(context.TODO(), templateName)
@@ -105,7 +119,7 @@ func generateExam(q repository.Queries,
 	}
 
 	sb := strings.Builder{}
-	for _, v := range examExercises {
+	for _, v := range allExercises {
 		err = q.InsertExamExercise(context.TODO(), repository.InsertExamExerciseParams{
 			ExamID:     exam.ID,
 			ExerciseID: v.ID,
@@ -134,7 +148,8 @@ func generateExam(q repository.Queries,
 	}
 
 	templateString := string(templateFile)
-	templateString = replaceInfo(templateString, professor, exoParams.LessonName, insertExamParams)
+	allLessonsName := strings.Join(lessonNames, ", ")
+	templateString = replaceInfo(templateString, professor, allLessonsName, insertExamParams)
 
 	result := strings.Replace(templateString, "{{EXERCISES}}", sb.String(), 1)
 
