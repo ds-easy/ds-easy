@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"fmt"
 
 	gotypst "github.com/francescoalemanno/gotypst"
 	log "github.com/sirupsen/logrus"
@@ -14,7 +15,14 @@ import (
 
 type LessonRequest struct {
 	LessonName string `json:"lesson_name"`
-	Limit      int64  `json:"limit"`
+	Limit      *int64 `json:"limit,omitempty"`
+}
+
+type GenerateExamPayload struct {
+	Lessons      []LessonRequest `json:"lessons"`
+	GlobalLimit  *int64          `json:"global_limit,omitempty"`
+	TemplateName string          `json:"template_name"`
+	repository.InsertExamParams
 }
 
 func (s Service) RegisterExamRoutes() {
@@ -45,15 +53,19 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("generateExamHandler")
 
 	decoder := json.NewDecoder(r.Body)
-	payload := struct {
-		Lessons []LessonRequest `json:"lessons"`
-		repository.InsertExamParams
-		TemplateName string `json:"template_name"`
-	}{}
+	var payload GenerateExamPayload
 	err := decoder.Decode(&payload)
 	if err != nil {
 		log.Error("Errors occured", err)
 		w.WriteHeader(500)
+		return
+	}
+
+	processedLessons, err := processLessonLimits(payload.Lessons, payload.GlobalLimit)
+	if err != nil {
+		log.Error("Error processing lesson limits: ", err)
+		w.WriteHeader(400)
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
 		return
 	}
 
@@ -63,7 +75,7 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 		ProfessorID:   payload.ProfessorID,
 	}
 
-	exam, err := generateExamFromMultipleLessons(s.Queries, payload.Lessons, insertParams, payload.TemplateName)
+	exam, err := generateExamFromMultipleLessons(s.Queries, processedLessons, insertParams, payload.TemplateName)
 	if err != nil {
 		log.Error("Errors occured", err)
 		w.WriteHeader(500)
@@ -72,6 +84,51 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Write(exam)
+}
+
+func processLessonLimits(lessons []LessonRequest, globalLimit *int64) ([]LessonRequest, error) {
+	if globalLimit == nil {
+		for _, lesson := range lessons {
+			if lesson.Limit == nil {
+				return nil, fmt.Errorf("lesson limit is required when global_limit is not provided for lesson: %s", lesson.LessonName)
+			}
+		}
+		return lessons, nil
+	}
+
+	if *globalLimit < int64(len(lessons)) {
+		return nil, fmt.Errorf("global_limit (%d) cannot be less than the number of lessons (%d). Each lesson needs at least 1 exercise", *globalLimit, len(lessons))
+	}
+	return distributeGlobalLimit(lessons, *globalLimit), nil
+}
+
+
+func distributeGlobalLimit(lessons []LessonRequest, globalLimit int64) []LessonRequest {
+	if len(lessons) == 0 {
+		return lessons
+	}
+
+	numLessons := int64(len(lessons))
+	baseLimit := globalLimit / numLessons
+	remainder := globalLimit % numLessons
+
+	processedLessons := make([]LessonRequest, len(lessons))
+
+	for i, lesson := range lessons {
+		limit := baseLimit
+		if int64(i) < remainder {
+			limit++
+		}
+
+		processedLessons[i] = LessonRequest{
+			LessonName: lesson.LessonName,
+			Limit:      &limit,
+		}
+
+		log.Infof("Lesson '%s' assigned limit: %d", lesson.LessonName, limit)
+	}
+
+	return processedLessons
 }
 
 func generateExamFromMultipleLessons(q repository.Queries,
@@ -86,7 +143,7 @@ func generateExamFromMultipleLessons(q repository.Queries,
 		exoParams := repository.FindRandomAccessibleExercisesByLessonNameWithLimitParams{
 			LessonName: lesson.LessonName,
 			UploadedBy: insertExamParams.ProfessorID,
-			Limit:      lesson.Limit,
+			Limit:      *lesson.Limit,
 		}
 
 		examExercises, err := q.FindRandomAccessibleExercisesByLessonNameWithLimit(context.TODO(), exoParams)

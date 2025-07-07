@@ -1,0 +1,30 @@
+meta {
+  name: Generate Exam (Global Limit)
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8080/exams
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "lessons": [
+      {
+        "lesson_name": "integration",
+        "limit": 2
+      },
+      {
+        "lesson_name": "Trigonometrie", 
+        "limit": 2
+      }
+    ],
+    "date_of_passing": "2024-11-20T15:04:05Z",
+    "exam_number": 2,
+    "professor_id": 2,
+    "template_name": "ELDS2"
+  }
+}
