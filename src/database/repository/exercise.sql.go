@@ -55,17 +55,16 @@ FROM exercises e
     LEFT JOIN lessons l ON e.lesson_id = l.id
 WHERE
     l.lesson_name = ?
-    AND (e.is_public = true OR (? IS NOT NULL AND e.uploaded_by = ?))
+    AND (e.is_public = true OR e.uploaded_by = ?)
 `
 
 type FindAccessibleExercisesByLessonNameParams struct {
-	LessonName string      `json:"lesson_name"`
-	Column2    interface{} `json:"column_2"`
-	UploadedBy int64       `json:"uploaded_by"`
+	LessonName string `json:"lesson_name"`
+	UploadedBy int64  `json:"uploaded_by"`
 }
 
 func (q *Queries) FindAccessibleExercisesByLessonName(ctx context.Context, arg FindAccessibleExercisesByLessonNameParams) ([]Exercise, error) {
-	rows, err := q.query(ctx, q.findAccessibleExercisesByLessonNameStmt, findAccessibleExercisesByLessonName, arg.LessonName, arg.Column2, arg.UploadedBy)
+	rows, err := q.query(ctx, q.findAccessibleExercisesByLessonNameStmt, findAccessibleExercisesByLessonName, arg.LessonName, arg.UploadedBy)
 	if err != nil {
 		return nil, err
 	}
@@ -260,25 +259,19 @@ FROM exercises e
     LEFT JOIN lessons l ON e.lesson_id = l.id
 WHERE
     l.lesson_name = ?
-    AND (e.is_public = true OR (? IS NOT NULL AND e.uploaded_by = ?))
+    AND (e.is_public = true OR e.uploaded_by = ?)
 ORDER BY RANDOM()
 LIMIT ?
 `
 
 type FindRandomAccessibleExercisesByLessonNameWithLimitParams struct {
-	LessonName string      `json:"lesson_name"`
-	Column2    interface{} `json:"column_2"`
-	UploadedBy int64       `json:"uploaded_by"`
-	Limit      int64       `json:"limit"`
+	LessonName string `json:"lesson_name"`
+	UploadedBy int64  `json:"uploaded_by"`
+	Limit      int64  `json:"limit"`
 }
 
 func (q *Queries) FindRandomAccessibleExercisesByLessonNameWithLimit(ctx context.Context, arg FindRandomAccessibleExercisesByLessonNameWithLimitParams) ([]Exercise, error) {
-	rows, err := q.query(ctx, q.findRandomAccessibleExercisesByLessonNameWithLimitStmt, findRandomAccessibleExercisesByLessonNameWithLimit,
-		arg.LessonName,
-		arg.Column2,
-		arg.UploadedBy,
-		arg.Limit,
-	)
+	rows, err := q.query(ctx, q.findRandomAccessibleExercisesByLessonNameWithLimitStmt, findRandomAccessibleExercisesByLessonNameWithLimit, arg.LessonName, arg.UploadedBy, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
