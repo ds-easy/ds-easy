@@ -1,0 +1,16 @@
+FROM golang:1.24-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache bash git make sqlite
+
+# Install migrate and sqlc
+RUN go install -tags 'sqlite' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.24.0
+
+# Make sure PATH is set
+ENV PATH="/go/bin:$PATH"
+
+COPY . .
+
+ENTRYPOINT ["make", "migrate"]

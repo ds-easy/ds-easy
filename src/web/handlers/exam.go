@@ -81,8 +81,9 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", "attachment; filename=exam.pdf")
+
 	w.Write(exam)
 }
 
@@ -175,6 +176,7 @@ func generateExamFromMultipleLessons(q repository.Queries,
 		log.Error("Errors occured ", err)
 		return nil, err
 	}
+	log.Info("exercises: ", allExercises)
 
 	sb := strings.Builder{}
 	for _, v := range allExercises {
@@ -210,8 +212,6 @@ func generateExamFromMultipleLessons(q repository.Queries,
 	templateString = replaceInfo(templateString, professor, allLessonsName, insertExamParams)
 
 	result := strings.Replace(templateString, "{{EXERCISES}}", sb.String(), 1)
-
-	log.Info("RESULT", result)
 
 	resultPdf, err := gotypst.PDF([]byte(result))
 	if err != nil {

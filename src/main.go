@@ -22,13 +22,16 @@ import (
 
 type Server struct {
 	port int
+	host string
 	db   database.Service
 }
 
 func NewServer() *http.Server {
+	host := os.Getenv("HOST")
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	NewServer := &Server{
 		port: port,
+		host: host,
 		db:   database.New(),
 	}
 
@@ -86,16 +89,17 @@ func main() {
 	server := NewServer()
 
 	log.Printf("Server started at: http://%s\n", server.Addr)
+	log.Printf("Health check: http://%s/health\n", server.Addr)
 	err := server.ListenAndServe()
 
 	if err != nil {
+		log.Printf("Error starting server: %v\n", err)
 		log.Panic("Cannot start server: ", err)
 	}
 }
 
 func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 	r := mux.NewRouter()
-
 
 	service := handlers.Service{
 		Queries: queries,
