@@ -39,7 +39,7 @@ func NewServer() *http.Server {
 
 	// Declare Server config
 	server := &http.Server{
-		Addr:         fmt.Sprintf("localhost:%d", NewServer.port),
+		Addr:         fmt.Sprintf("%s:%d", NewServer.host, NewServer.port),
 		Handler:      cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
