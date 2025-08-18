@@ -15,19 +15,23 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	_ "github.com/joho/godotenv/autoload"
 	log "github.com/sirupsen/logrus"
 )
 
 type Server struct {
 	port int
+	host string
 	db   database.Service
 }
 
 func NewServer() *http.Server {
+	host := os.Getenv("HOST")
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	NewServer := &Server{
 		port: port,
+		host: host,
 		db:   database.New(),
 	}
 
@@ -35,8 +39,14 @@ func NewServer() *http.Server {
 
 	// Declare Server config
 	server := &http.Server{
-		Addr:         fmt.Sprintf("localhost:%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(*queries),
+		Addr:         fmt.Sprintf("%s:%d", NewServer.host, NewServer.port),
+		Handler:      cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
+		AllowedHeaders: []string{"*"},
+		AllowCredentials: true,
+		Debug:           os.Getenv("ENV") == "development",
+	}).Handler(NewServer.RegisterRoutes(*queries)),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
@@ -79,16 +89,17 @@ func main() {
 	server := NewServer()
 
 	log.Printf("Server started at: http://%s\n", server.Addr)
+	log.Printf("Health check: http://%s/health\n", server.Addr)
 	err := server.ListenAndServe()
 
 	if err != nil {
+		log.Printf("Error starting server: %v\n", err)
 		log.Panic("Cannot start server: ", err)
 	}
 }
 
 func (s *Server) RegisterRoutes(queries repository.Queries) http.Handler {
 	r := mux.NewRouter()
-
 
 	service := handlers.Service{
 		Queries: queries,

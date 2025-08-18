@@ -23,4 +23,5 @@ func (s Service) RegisterRoutes() {
 	s.registerLessonRoutes()
 	s.registerTemplateRoutes()
 	s.registerUserRoutes()
+	s.registerHealthRoutes()
 }

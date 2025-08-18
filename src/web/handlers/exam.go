@@ -4,14 +4,26 @@ import (
 	"context"
 	"ds-easy/src/database/repository"
 	utils "ds-easy/src/web/handlers/util"
-	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"strings"
+	"fmt"
 
 	gotypst "github.com/francescoalemanno/gotypst"
 	log "github.com/sirupsen/logrus"
 )
+
+type LessonRequest struct {
+	LessonName string `json:"lesson_name"`
+	Limit      *int64 `json:"limit,omitempty"`
+}
+
+type GenerateExamPayload struct {
+	Lessons      []LessonRequest `json:"lessons"`
+	GlobalLimit  *int64          `json:"global_limit,omitempty"`
+	TemplateName string          `json:"template_name"`
+	repository.InsertExamParams
+}
 
 func (s Service) RegisterExamRoutes() {
 	baseUrl := "/exams"
@@ -41,11 +53,7 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("generateExamHandler")
 
 	decoder := json.NewDecoder(r.Body)
-	payload := struct {
-		repository.FindRandomExercisesByLessonNameWithLimitParams
-		repository.InsertExamParams
-		TemplateName string `json:"template_name"`
-	}{}
+	var payload GenerateExamPayload
 	err := decoder.Decode(&payload)
 	if err != nil {
 		log.Error("Errors occured", err)
@@ -53,9 +61,12 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exoParams := repository.FindRandomExercisesByLessonNameWithLimitParams{
-		LessonName: payload.LessonName,
-		Limit:      payload.Limit,
+	processedLessons, err := processLessonLimits(payload.Lessons, payload.GlobalLimit)
+	if err != nil {
+		log.Error("Error processing lesson limits: ", err)
+		w.WriteHeader(400)
+		w.Write([]byte(fmt.Sprintf(`{"error": "%s"}`, err.Error())))
+		return
 	}
 
 	insertParams := repository.InsertExamParams{
@@ -64,32 +75,86 @@ func (s Service) generateExamHandler(w http.ResponseWriter, r *http.Request) {
 		ProfessorID:   payload.ProfessorID,
 	}
 
-	exam, err := generateExam(s.Queries, exoParams, insertParams, payload.TemplateName)
+	exam, err := generateExamFromMultipleLessons(s.Queries, processedLessons, insertParams, payload.TemplateName)
 	if err != nil {
 		log.Error("Errors occured", err)
 		w.WriteHeader(500)
 		return
 	}
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", "attachment; filename=exam.pdf")
 
-	pdfBase64 := base64.RawStdEncoding.EncodeToString(exam)
-	jsonResp, err := json.Marshal(pdfBase64)
-	if err != nil {
-		log.Error("Errors occured", err)
-		w.WriteHeader(500)
-		return
-	}
-
-	w.Write(jsonResp)
+	w.Write(exam)
 }
 
-func generateExam(q repository.Queries,
-	exoParams repository.FindRandomExercisesByLessonNameWithLimitParams,
+func processLessonLimits(lessons []LessonRequest, globalLimit *int64) ([]LessonRequest, error) {
+	if globalLimit == nil {
+		for _, lesson := range lessons {
+			if lesson.Limit == nil {
+				return nil, fmt.Errorf("lesson limit is required when global_limit is not provided for lesson: %s", lesson.LessonName)
+			}
+		}
+		return lessons, nil
+	}
+
+	if *globalLimit < int64(len(lessons)) {
+		return nil, fmt.Errorf("global_limit (%d) cannot be less than the number of lessons (%d). Each lesson needs at least 1 exercise", *globalLimit, len(lessons))
+	}
+	return distributeGlobalLimit(lessons, *globalLimit), nil
+}
+
+
+func distributeGlobalLimit(lessons []LessonRequest, globalLimit int64) []LessonRequest {
+	if len(lessons) == 0 {
+		return lessons
+	}
+
+	numLessons := int64(len(lessons))
+	baseLimit := globalLimit / numLessons
+	remainder := globalLimit % numLessons
+
+	processedLessons := make([]LessonRequest, len(lessons))
+
+	for i, lesson := range lessons {
+		limit := baseLimit
+		if int64(i) < remainder {
+			limit++
+		}
+
+		processedLessons[i] = LessonRequest{
+			LessonName: lesson.LessonName,
+			Limit:      &limit,
+		}
+
+		log.Infof("Lesson '%s' assigned limit: %d", lesson.LessonName, limit)
+	}
+
+	return processedLessons
+}
+
+func generateExamFromMultipleLessons(q repository.Queries,
+	lessons []LessonRequest,
 	insertExamParams repository.InsertExamParams,
 	templateName string) ([]byte, error) {
-	examExercises, err := q.FindRandomExercisesByLessonNameWithLimit(context.TODO(), exoParams)
-	if err != nil {
-		log.Error("Errors occured", err)
-		return nil, err
+
+	var allExercises []repository.Exercise
+	var lessonNames []string
+
+	for _, lesson := range lessons {
+		exoParams := repository.FindRandomAccessibleExercisesByLessonNameWithLimitParams{
+			LessonName: lesson.LessonName,
+			UploadedBy: insertExamParams.ProfessorID,
+			Limit:      *lesson.Limit,
+		}
+
+		examExercises, err := q.FindRandomAccessibleExercisesByLessonNameWithLimit(context.TODO(), exoParams)
+		if err != nil {
+			log.Error("Errors occured", err)
+			return nil, err
+		}
+
+		allExercises = append(allExercises, examExercises...)
+		lessonNames = append(lessonNames, lesson.LessonName)
 	}
 
 	template, err := q.FindTemplateByName(context.TODO(), templateName)
@@ -102,18 +167,19 @@ func generateExam(q repository.Queries,
 
 	exam, err := q.InsertExam(context.TODO(), insertExamParams)
 	if err != nil {
-		log.Error("Errors occured", err)
+		log.Error("Errors occured ", err)
 		return nil, err
 	}
 
 	professor, err := q.FindUserById(context.TODO(), insertExamParams.ProfessorID)
 	if err != nil {
-		log.Error("Errors occured", err)
+		log.Error("Errors occured ", err)
 		return nil, err
 	}
+	log.Info("exercises: ", allExercises)
 
 	sb := strings.Builder{}
-	for _, v := range examExercises {
+	for _, v := range allExercises {
 		err = q.InsertExamExercise(context.TODO(), repository.InsertExamExerciseParams{
 			ExamID:     exam.ID,
 			ExerciseID: v.ID,
@@ -129,7 +195,9 @@ func generateExam(q repository.Queries,
 			return nil, err
 		}
 
+		_, _ = sb.WriteString("#question[\n\n")
 		_, _ = sb.Write(exoFile)
+		_, _ = sb.WriteString("\n\n]")
 		_, _ = sb.WriteString("\n\n")
 	}
 
@@ -140,11 +208,10 @@ func generateExam(q repository.Queries,
 	}
 
 	templateString := string(templateFile)
-	templateString = replaceInfo(templateString, professor, exoParams.LessonName, insertExamParams)
+	allLessonsName := strings.Join(lessonNames, ", ")
+	templateString = replaceInfo(templateString, professor, allLessonsName, insertExamParams)
 
 	result := strings.Replace(templateString, "{{EXERCISES}}", sb.String(), 1)
-
-	log.Info("RESULT", result)
 
 	resultPdf, err := gotypst.PDF([]byte(result))
 	if err != nil {

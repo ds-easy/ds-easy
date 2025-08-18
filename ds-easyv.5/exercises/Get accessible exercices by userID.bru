@@ -1,0 +1,15 @@
+meta {
+  name: Get accessible exercices by userID
+  type: http
+  seq: 4
+}
+
+get {
+  url: http://localhost:8080/exercises/accessible?uploaded_by=2
+  body: none
+  auth: none
+}
+
+params:query {
+  uploaded_by: 2
+}
